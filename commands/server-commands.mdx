@@ -21,28 +21,28 @@ This command has no parameters - it automatically tracks the server where the co
 - Data collection begins within 30 minutes
 
 ### Example Usage
-```
+```text
 /monitorserver
 ```
 
 ### Expected Response
 **Success (new server):**
-```
+```text
 Successfully added My Awesome Server to the server monitoring list.
 ```
 
 **Already tracked:**
-```
+```text
 My Awesome Server is already being tracked since Friday, March 1, 2026 at 10:30 AM
 ```
 
 **Permission denied:**
-```
+```text
 You need 'Manage Server' permission to use this command.
 ```
 
 **Not in a server:**
-```
+```text
 This command can only be used in a server.
 ```
 
@@ -68,28 +68,28 @@ This command has no parameters - it automatically removes tracking for the serve
 - Cannot be undone
 
 ### Example Usage
-```
+```text
 /removemonitorserver
 ```
 
 ### Expected Response
 **Success:**
-```
+```text
 Successfully removed My Awesome Server from monitoring.
 ```
 
 **Server not found:**
-```
+```text
 Unable to find server. Server may not be tracked.
 ```
 
 **Permission denied:**
-```
+```text
 You need 'Manage Server' permission to use this command.
 ```
 
 **Not in a server:**
-```
+```text
 This command can only be used in a server.
 ```
 
@@ -120,14 +120,14 @@ No special permissions required - any user can view server icon history.
 - Provides Back/Next navigation buttons
 
 ### Example Usage
-```
+```text
 /serverpfphistory
 ```
 
 ### Expected Response
 **Success:**
 An embed titled "My Awesome Server Server Icon History" with fields:
-```
+```text
 Friday, March 1, 2026 at 2:30 PM
 Link
 Checksum: c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0
@@ -141,17 +141,17 @@ Page 1 of 2
 ```
 
 **No history:**
-```
+```text
 My Awesome Server has no recorded server icon history.
 ```
 
 **Database error:**
-```
+```text
 Failed to fetch server icon history.
 ```
 
 **Not in a server:**
-```
+```text
 This command can only be used in a server.
 ```
 
@@ -191,14 +191,14 @@ No special permissions required - any user can view server statistics.
 - Calculations are performed from newest to oldest records
 
 ### Example Usage
-```
+```text
 /serverstats
 ```
 
 ### Expected Response
 **Success:**
 An embed with the server name showing:
-```
+```text
 My Awesome Server
 
 Average times between server icon changes:
@@ -212,28 +212,28 @@ Monitored since: Sat, 01 Jan 2026 12:00:00 +0000
 ```
 
 **Not enough data:**
-```
+```text
 Not enough data to calculate average server icon changes.
 ```
 
 **Server not tracked:**
-```
+```text
 My Awesome Server is not currently being tracked. You can add it using /monitorserver
 ```
 
 **No icons recorded:**
-```
+```text
 No server icons have been recorded. Please wait at least 30 minutes and check again.
 ```
 
 **Not in a server:**
-```
+```text
 This command can only be used in a server.
 ```
 
 ### Calculation Method
 The bot calculates the time difference between each consecutive server icon change, then averages all intervals:
-```
+```text
 Average = Sum of all intervals / Number of intervals
 Number of intervals = Number of changes - 1
 ```
@@ -257,12 +257,12 @@ This command has no parameters.
 - Can be used anywhere (servers or DMs)
 
 ### Example Usage
-```
+```text
 /ping
 ```
 
 ### Expected Response
-```
+```text
 🏓 Pong!
 Latency: 42ms
 ```

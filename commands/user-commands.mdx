@@ -18,25 +18,25 @@ Adds a user to the monitoring list to track their profile picture and username c
 - Data collection begins within 30 minutes of adding
 
 ### Example Usage
-```
+```text
 /monitor memberid:@JohnDoe
-```
+```text
 
 ### Expected Response
 **Success (new user):**
-```
+```text
 Successfully added JohnDoe to the monitoring list.
-```
+```text
 
 **Already tracked:**
-```
+```text
 JohnDoe is already being tracked since Friday, March 1, 2026 at 10:30 AM
-```
+```text
 
 **Error:**
-```
+```text
 Invalid User ID.
-```
+```text
 
 <Note>
 The bot stores the tracking start date. Historical data from before this date is not available.
@@ -58,25 +58,25 @@ Removes a user from the monitoring list and deletes all associated tracking data
 - Cannot be undone
 
 ### Example Usage
-```
+```text
 /removemonitor memberid:@JohnDoe
-```
+```text
 
 ### Expected Response
 **Success:**
-```
+```text
 Successfully deleted user.
-```
+```text
 
 **User not found:**
-```
+```text
 Unable to find user. User may not be tracked.
-```
+```text
 
 **Error:**
-```
+```text
 Invalid User ID.
-```
+```text
 
 <Warning>
 Removing a user deletes all historical data permanently. This action cannot be undone.
@@ -102,14 +102,14 @@ Displays the profile picture history for a specified user in a paginated format.
 - Provides Back/Next navigation buttons
 
 ### Example Usage
-```
+```text
 /pfphistory memberid:@JohnDoe
-```
+```text
 
 ### Expected Response
 **Success:**
 An embed titled "Profile Picture History of JohnDoe#1234" with fields:
-```
+```text
 Profile Picture first recorded 2 months ago
 Link: Look at the previous picture
 Checksum: a3f8b9c2d1e4f5a6b7c8d9e0f1a2b3c4
@@ -120,19 +120,19 @@ Checksum: b4e9c3d2e5f6a7b8c9d0e1f2a3b4c5d6
 
 Page 1 of 3
 [Back] [Next]
-```
+```text
 
 **User not tracked:**
-```
+```text
 User not found
 The User you requested the history of could not be found in our Database.
 To add the user to tracking use /monitor @User
-```
+```text
 
 **No data yet:**
-```
+```text
 No Profile picture entries found. Please check back in about 30 minutes.
-```
+```text
 
 ### Pagination
 - 10 entries per page
@@ -163,14 +163,14 @@ Displays the username history for a specified user in a paginated format.
 - Provides Back/Next navigation buttons
 
 ### Example Usage
-```
+```text
 /usernamehistory memberid:@JohnDoe
-```
+```text
 
 ### Expected Response
 **Success:**
 An embed titled "Username History of JohnDoe#1234" with fields:
-```
+```text
 Username first recorded 1 month ago
 JohnDoe
 
@@ -182,19 +182,19 @@ jdoe123
 
 Page 1 of 1
 [Back] [Next]
-```
+```text
 
 **User not tracked:**
-```
+```text
 User not found
 The User you requested the history of could not be found in our Database.
 To add the user to tracking use /monitor @User
-```
+```text
 
 **No data yet:**
-```
+```text
 No Username entries found. Please check back in about 30 minutes.
-```
+```text
 
 ### Pagination
 Identical behavior to `/pfphistory` - 10 entries per page with navigation controls.
@@ -226,14 +226,14 @@ Shows statistics about a user's profile picture change behavior.
 - Uses actual timestamps to compute precise averages
 
 ### Example Usage
-```
+```text
 /stats member:@JohnDoe
-```
+```text
 
 ### Expected Response
 **Success:**
 An embed with the user's tag showing:
-```
+```text
 Average times between profile picture changes:
 
 Hours: 720
@@ -242,28 +242,28 @@ Days: 30
 Changes since beginning of Monitoring: 5
 
 Monitored since: Fri, 01 Dec 2025 14:30:00 +0000
-```
+```text
 
 **Not enough data:**
-```
+```text
 Not enough data to calculate an average time between profile picture changes.
-```
+```text
 
 **User not tracked:**
-```
+```text
 User is not currently being tracked. You can add the user to the monitor list by using /monitor @user
-```
+```text
 
 **No profile pictures recorded:**
-```
+```text
 No Profile Pictures have been recorded for this User. Please wait at least 30 minutes and check again.
-```
+```text
 
 ### Calculation Method
 The bot calculates the time difference between each consecutive profile picture change, then averages all intervals:
-```
+```text
 Average = Total Duration / Number of Changes
-```
+```text
 
 <Info>
 Statistics become more accurate over time as more data points are collected. At least 2 profile picture changes are required.
