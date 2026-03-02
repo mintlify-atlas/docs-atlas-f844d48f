@@ -1,0 +1,95 @@
+{
+  "projectType": "saas",
+  "projectName": "PFP Checker",
+  "projectDescription": "A Discord bot that tracks and archives profile pictures, usernames, and server icons with comprehensive statistics.",
+  "theme": "aspen",
+  "primaryColor": "#5865F2",
+  "lightColor": "#7289DA",
+  "darkColor": "#4752C4",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "deployment/docker",
+              "deployment/manual",
+              "deployment/configuration"
+            ]
+          },
+          {
+            "group": "User Guide",
+            "pages": [
+              "guides/user-tracking",
+              "guides/server-tracking",
+              "guides/viewing-history",
+              "guides/statistics"
+            ]
+          },
+          {
+            "group": "Commands",
+            "pages": [
+              "commands/overview",
+              "commands/user-commands",
+              "commands/server-commands"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Development",
+        "groups": [
+          {
+            "group": "Contributing",
+            "pages": [
+              "development/overview",
+              "development/setup",
+              "development/architecture",
+              "development/database"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/changelog",
+              "reference/roadmap",
+              "reference/faq"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Profile picture tracking and history with automatic detection",
+    "Username change monitoring and timeline",
+    "Server icon tracking with historical archive",
+    "Comprehensive statistics with change frequency analysis",
+    "Automatic periodic updates every 30 minutes",
+    "Docker deployment with persistent storage",
+    "SQLite database with migration support",
+    "ImgBB integration for reliable image hosting"
+  ],
+  "publicApiSurface": [
+    "/monitor - Start tracking a user's profile picture and username",
+    "/removemonitor - Stop tracking a user",
+    "/pfphistory - View a user's profile picture history",
+    "/usernamehistory - View a user's username history",
+    "/stats - Show statistics about a user's profile picture changes",
+    "/monitorserver - Start tracking server icon changes",
+    "/removemonitorserver - Stop tracking server icon changes",
+    "/serverpfphistory - View server icon history",
+    "/serverstats - Show statistics about server icon changes",
+    "/ping - Check bot status"
+  ]
+}
