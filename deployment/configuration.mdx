@@ -1,0 +1,436 @@
+---
+title: 'Configuration'
+description: 'Environment variables and configuration options for PFP Checker'
+icon: 'gear'
+---
+
+PFP Checker uses environment variables for configuration. This page documents all available configuration options and best practices.
+
+## Configuration File
+
+All configuration is managed through a `.env` file in the project root. The bot loads this file at startup using the `dotenvy` library.
+
+<Note>
+  Create your `.env` file by copying the example:
+  ```bash
+  cp .env.example .env
+  ```
+</Note>
+
+## Environment Variables
+
+The following environment variables are used by PFP Checker (defined in `src/util/config.rs`):
+
+<ParamField path="DISCORD_TOKEN" type="string" required>
+  Your Discord bot token for authentication with the Discord API.
+  
+  **How to get it:**
+  1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
+  2. Create a new application or select an existing one
+  3. Navigate to the "Bot" section
+  4. Click "Reset Token" or "Copy" to get your token
+  
+  <Warning>
+    Keep this token secret! Never commit it to version control or share it publicly.
+  </Warning>
+  
+  **Example:**
+  ```bash
+  DISCORD_TOKEN=MTExMjIzMzQ0NTU2Njc3ODg5.GaBcDe.FgHiJkLmNoPqRsTuVwXyZ1234567890abc
+  ```
+</ParamField>
+
+<ParamField path="IMGBB_KEY" type="string" required>
+  Your ImgBB API key for uploading and hosting profile pictures and server icons.
+  
+  **How to get it:**
+  1. Go to [ImgBB API](https://api.imgbb.com/)
+  2. Sign up or log in
+  3. Generate an API key from your account settings
+  
+  <Info>
+    ImgBB provides free image hosting with API access. The bot uses this service to archive profile pictures and server icons.
+  </Info>
+  
+  **Example:**
+  ```bash
+  IMGBB_KEY=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+  ```
+</ParamField>
+
+<ParamField path="DATABASE_URL" type="string" required>
+  SQLite database file path or connection URL.
+  
+  **Format:** `sqlite:<path-to-database-file>`
+  
+  <Info>
+    The database file will be created automatically if it doesn't exist (via `create_if_missing: true` in `src/db/connection.rs:12`).
+  </Info>
+  
+  **Examples:**
+  
+  <CodeGroup>
+  
+  ```bash Local Development
+  DATABASE_URL=sqlite:database.sqlite
+  ```
+  
+  ```bash Docker
+  DATABASE_URL=sqlite:/app/data/database.sqlite
+  ```
+  
+  ```bash Absolute Path
+  DATABASE_URL=sqlite:/var/lib/pfp-checker/database.sqlite
+  ```
+  
+  </CodeGroup>
+</ParamField>
+
+## Example Configuration
+
+Here's the complete `.env.example` file from the repository:
+
+```bash .env.example
+DISCORD_TOKEN=<token>
+IMGBB_KEY=<key>
+DATABASE_URL=sqlite:database.sqlite
+```
+
+## Configuration Loading
+
+The configuration is loaded in `src/util/config.rs` using the following structure:
+
+```rust src/util/config.rs
+use dotenvy::dotenv;
+use std::env;
+
+pub struct Config {
+    pub discord_token: String,
+    pub database_url: String,
+    pub imgbb_key: String,
+}
+
+impl Config {
+    pub fn from_env() -> Result<Self, env::VarError> {
+        dotenv().ok();
+
+        Ok(Config {
+            discord_token: env::var("DISCORD_TOKEN")?,
+            database_url: env::var("DATABASE_URL")?,
+            imgbb_key: env::var("IMGBB_KEY")?,
+        })
+    }
+}
+```
+
+<Note>
+  All three environment variables are **required**. The bot will fail to start if any are missing.
+</Note>
+
+## Discord Bot Setup
+
+To configure your Discord bot properly, follow these steps:
+
+<Steps>
+  <Step title="Create a Discord Application">
+    1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
+    2. Click "New Application"
+    3. Give your application a name (e.g., "PFP Checker")
+  </Step>
+
+  <Step title="Create a Bot User">
+    1. Navigate to the "Bot" section in the left sidebar
+    2. Click "Add Bot"
+    3. Confirm by clicking "Yes, do it!"
+    4. Copy your bot token and save it securely
+  </Step>
+
+  <Step title="Configure Bot Permissions">
+    The bot requires the following permissions:
+    
+    - **Read Messages/View Channels**: To see commands
+    - **Send Messages**: To respond to commands
+    - **Embed Links**: To send rich embeds with profile picture history
+    - **Attach Files**: To send image attachments
+    - **Read Message History**: To process interactions
+    
+    <Info>
+      The bot uses **Gateway Intents: None** (as defined in `src/main.rs:379`). It relies solely on slash commands and doesn't need message content or presence intents.
+    </Info>
+  </Step>
+
+  <Step title="Generate Invite Link">
+    1. Go to the "OAuth2" → "URL Generator" section
+    2. Select scopes: `bot` and `applications.commands`
+    3. Select the permissions listed above
+    4. Copy the generated URL and use it to invite the bot to your server
+  </Step>
+</Steps>
+
+## ImgBB API Setup
+
+<Steps>
+  <Step title="Create an ImgBB Account">
+    Visit [ImgBB](https://imgbb.com/) and sign up for a free account.
+  </Step>
+
+  <Step title="Get Your API Key">
+    1. Go to [ImgBB API](https://api.imgbb.com/)
+    2. Navigate to "Get API Key" or your account settings
+    3. Generate a new API key
+    4. Copy the key and add it to your `.env` file
+  </Step>
+</Steps>
+
+<Info>
+  **Free Tier Limits**: ImgBB's free tier allows unlimited image uploads with a reasonable rate limit. The bot uses ImgBB to permanently archive profile pictures and server icons.
+</Info>
+
+## Database Configuration
+
+### Local Development
+
+For local development, use a relative path:
+
+```bash .env
+DATABASE_URL=sqlite:database.sqlite
+```
+
+This creates `database.sqlite` in the project root directory.
+
+### Docker Deployment
+
+For Docker, the database is stored in a volume:
+
+```bash .env
+DATABASE_URL=sqlite:/app/data/database.sqlite
+```
+
+The `./data` directory on your host is mounted to `/app/data` inside the container, ensuring persistence.
+
+### Production Deployment
+
+For production systems, use an absolute path:
+
+```bash .env
+DATABASE_URL=sqlite:/var/lib/pfp-checker/database.sqlite
+```
+
+Ensure the directory exists and has proper permissions:
+
+```bash
+sudo mkdir -p /var/lib/pfp-checker
+sudo chown your-username:your-username /var/lib/pfp-checker
+sudo chmod 755 /var/lib/pfp-checker
+```
+
+## Database Connection Pool
+
+The bot uses SQLx connection pooling (configured in `src/db/connection.rs`):
+
+```rust src/db/connection.rs
+pub async fn establish_connection(database_url: &str) -> Result<Arc<Pool<Sqlite>>, sqlx::Error> {
+    // Create a connection pool
+    let pool = SqlitePoolOptions::new()
+        .max_connections(5)
+        .connect_with(
+            SqliteConnectOptions::new()
+                .filename(database_url)
+                .create_if_missing(true),
+        )
+        .await?;
+
+    // Run migrations
+    sqlx::migrate!("./migrations").run(&pool).await?;
+
+    Ok(Arc::new(pool))
+}
+```
+
+<CardGroup cols={2}>
+  <Card title="Connection Pool" icon="layer-group">
+    Maximum of 5 concurrent database connections for optimal performance
+  </Card>
+  
+  <Card title="Auto-creation" icon="wand-magic-sparkles">
+    Database file is created automatically if it doesn't exist
+  </Card>
+  
+  <Card title="Auto-migrations" icon="database">
+    Migrations run automatically on every startup
+  </Card>
+  
+  <Card title="Thread-safe" icon="lock">
+    Uses `Arc<Pool>` for safe sharing across async tasks
+  </Card>
+</CardGroup>
+
+## Security Best Practices
+
+<Warning>
+  **Never commit secrets to version control!** Always add `.env` to your `.gitignore` file.
+</Warning>
+
+### Protecting Your Credentials
+
+1. **Never commit `.env` files**
+   ```bash .gitignore
+   .env
+   .env.local
+   .env.*.local
+   ```
+
+2. **Use environment-specific files**
+   - `.env.example` - Template with placeholder values (safe to commit)
+   - `.env` - Actual credentials (never commit)
+   - `.env.production` - Production credentials (never commit)
+
+3. **Rotate tokens regularly**
+   - Regenerate your Discord bot token periodically
+   - Update ImgBB API keys if compromised
+
+4. **Use restricted permissions**
+   - Only grant the Discord permissions your bot actually needs
+   - Use separate API keys for development and production
+
+5. **Secure file permissions**
+   ```bash
+   chmod 600 .env  # Only owner can read/write
+   ```
+
+### Environment-Specific Configuration
+
+For different environments, you can use separate env files:
+
+<CodeGroup>
+
+```bash Development
+# .env.development
+DISCORD_TOKEN=your_dev_token
+IMGBB_KEY=your_dev_key
+DATABASE_URL=sqlite:dev_database.sqlite
+```
+
+```bash Production
+# .env.production
+DISCORD_TOKEN=your_prod_token
+IMGBB_KEY=your_prod_key
+DATABASE_URL=sqlite:/var/lib/pfp-checker/database.sqlite
+```
+
+</CodeGroup>
+
+Load the appropriate file based on your environment:
+
+```bash
+# Development
+ln -sf .env.development .env
+
+# Production
+ln -sf .env.production .env
+```
+
+## Validation and Error Handling
+
+The bot validates configuration at startup (`src/main.rs:370`):
+
+```rust src/main.rs
+let config = Config::from_env().expect("Failed to load configuration.");
+```
+
+If any required environment variable is missing, the bot will:
+1. Print an error message
+2. Exit with a panic
+3. Not start the Discord connection
+
+<Info>
+  Check the logs if the bot fails to start. Common issues include:
+  - Missing `.env` file
+  - Typos in environment variable names
+  - Invalid token formats
+  - Database permission errors
+</Info>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Failed to load configuration">
+    Ensure your `.env` file exists and contains all required variables:
+    
+    ```bash
+    # Check if .env exists
+    ls -la .env
+    
+    # Verify contents (be careful not to expose tokens!)
+    cat .env | grep -v TOKEN | grep -v KEY
+    ```
+  </Accordion>
+  
+  <Accordion title="Invalid Discord token">
+    Symptoms:
+    - Bot fails to connect
+    - "Unauthorized" errors in logs
+    
+    Solutions:
+    - Verify the token is correct (no extra spaces)
+    - Regenerate the token in Discord Developer Portal
+    - Ensure the bot user is created in your application
+  </Accordion>
+  
+  <Accordion title="ImgBB upload failures">
+    Symptoms:
+    - Images not saving
+    - HTTP 401 errors
+    
+    Solutions:
+    - Verify your ImgBB API key is valid
+    - Check ImgBB rate limits
+    - Ensure your account is active
+  </Accordion>
+  
+  <Accordion title="Database connection errors">
+    Symptoms:
+    - "unable to open database file"
+    - Permission denied errors
+    
+    Solutions:
+    - Ensure the database directory exists
+    - Check file permissions: `chmod 755 <directory>`
+    - Verify the path in DATABASE_URL is correct
+    - For Docker, ensure volume mounts are configured
+  </Accordion>
+  
+  <Accordion title="Environment variables not loading in Docker">
+    Ensure your `docker-compose.yml` includes the env_file directive:
+    
+    ```yaml
+    services:
+      discord-bot:
+        env_file:
+          - .env
+    ```
+    
+    Or pass variables explicitly:
+    
+    ```yaml
+    services:
+      discord-bot:
+        environment:
+          - DISCORD_TOKEN=${DISCORD_TOKEN}
+          - IMGBB_KEY=${IMGBB_KEY}
+          - DATABASE_URL=${DATABASE_URL}
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Docker Deployment" icon="docker" href="/deployment/docker">
+    Deploy your configured bot using Docker
+  </Card>
+  
+  <Card title="Manual Installation" icon="terminal" href="/deployment/manual">
+    Run the bot from source with your configuration
+  </Card>
+</CardGroup>

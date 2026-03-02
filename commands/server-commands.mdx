@@ -1,0 +1,278 @@
+---
+title: "Server Commands"
+description: "Track and view Discord server icon changes and statistics"
+---
+
+## /monitorserver
+
+Adds the current server to the monitoring list to track server icon changes.
+
+### Parameters
+This command has no parameters - it automatically tracks the server where the command is used.
+
+### Permission Required
+**Manage Server** permission is required to use this command.
+
+### Behavior
+- Checks if the server is already being tracked
+- If already tracked, displays when tracking started
+- If not tracked, adds the server to the database with the current timestamp
+- Server icon changes are monitored automatically
+- Data collection begins within 30 minutes
+
+### Example Usage
+```
+/monitorserver
+```
+
+### Expected Response
+**Success (new server):**
+```
+Successfully added My Awesome Server to the server monitoring list.
+```
+
+**Already tracked:**
+```
+My Awesome Server is already being tracked since Friday, March 1, 2026 at 10:30 AM
+```
+
+**Permission denied:**
+```
+You need 'Manage Server' permission to use this command.
+```
+
+**Not in a server:**
+```
+This command can only be used in a server.
+```
+
+<Warning>
+This command can only be used in a Discord server (guild), not in DMs. The user must have **Manage Server** permission.
+</Warning>
+
+---
+
+## /removemonitorserver
+
+Removes the current server from the monitoring list and deletes all associated tracking data.
+
+### Parameters
+This command has no parameters - it automatically removes tracking for the server where the command is used.
+
+### Permission Required
+**Manage Server** permission is required to use this command.
+
+### Behavior
+- Deletes the server from the database
+- Removes all associated server icon history via CASCADE
+- Cannot be undone
+
+### Example Usage
+```
+/removemonitorserver
+```
+
+### Expected Response
+**Success:**
+```
+Successfully removed My Awesome Server from monitoring.
+```
+
+**Server not found:**
+```
+Unable to find server. Server may not be tracked.
+```
+
+**Permission denied:**
+```
+You need 'Manage Server' permission to use this command.
+```
+
+**Not in a server:**
+```
+This command can only be used in a server.
+```
+
+<Warning>
+Removing a server deletes all historical icon data permanently. This action cannot be undone and requires **Manage Server** permission.
+</Warning>
+
+---
+
+## /serverpfphistory
+
+Displays the server icon history for the current server in a paginated format.
+
+### Parameters
+This command has no parameters - it automatically shows history for the server where the command is used.
+
+### Permission Required
+No special permissions required - any user can view server icon history.
+
+### Behavior
+- Fetches all recorded server icons from the database
+- Displays 10 entries per page
+- Icons are ordered from newest to oldest
+- Each entry shows:
+  - Full timestamp of when the icon was recorded
+  - Link to the icon image
+  - SHA-256 checksum of the image
+- Provides Back/Next navigation buttons
+
+### Example Usage
+```
+/serverpfphistory
+```
+
+### Expected Response
+**Success:**
+An embed titled "My Awesome Server Server Icon History" with fields:
+```
+Friday, March 1, 2026 at 2:30 PM
+Link
+Checksum: c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0
+
+Thursday, February 1, 2026 at 10:15 AM
+Link
+Checksum: d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1
+
+Page 1 of 2
+[Back] [Next]
+```
+
+**No history:**
+```
+My Awesome Server has no recorded server icon history.
+```
+
+**Database error:**
+```
+Failed to fetch server icon history.
+```
+
+**Not in a server:**
+```
+This command can only be used in a server.
+```
+
+### Pagination
+- 10 entries per page
+- Back button disabled on first page
+- Next button disabled on last page
+- Footer shows "Page X of Y"
+
+<Tip>
+Click the "Link" text to view the full-size server icon. Icons are stored permanently and can be viewed even after they've been changed.
+</Tip>
+
+---
+
+## /serverstats
+
+Shows statistics about the current server's icon change behavior.
+
+### Parameters
+This command has no parameters - it automatically shows statistics for the server where the command is used.
+
+### Permission Required
+No special permissions required - any user can view server statistics.
+
+### Statistics Displayed
+
+1. **Average time between server icon changes (Hours)** - Average duration in hours
+2. **Average time between server icon changes (Days)** - Average duration in days
+3. **Changes since beginning of Monitoring** - Total number of icon changes
+4. **Monitored since** - Date when tracking started (in footer)
+
+### Behavior
+- Calculates average duration between consecutive server icon changes
+- Requires at least 2 server icons to calculate statistics
+- Uses actual timestamps to compute precise averages
+- Calculations are performed from newest to oldest records
+
+### Example Usage
+```
+/serverstats
+```
+
+### Expected Response
+**Success:**
+An embed with the server name showing:
+```
+My Awesome Server
+
+Average times between server icon changes:
+
+Hours: 1440
+Days: 60
+
+Changes since beginning of Monitoring: 3
+
+Monitored since: Sat, 01 Jan 2026 12:00:00 +0000
+```
+
+**Not enough data:**
+```
+Not enough data to calculate average server icon changes.
+```
+
+**Server not tracked:**
+```
+My Awesome Server is not currently being tracked. You can add it using /monitorserver
+```
+
+**No icons recorded:**
+```
+No server icons have been recorded. Please wait at least 30 minutes and check again.
+```
+
+**Not in a server:**
+```
+This command can only be used in a server.
+```
+
+### Calculation Method
+The bot calculates the time difference between each consecutive server icon change, then averages all intervals:
+```
+Average = Sum of all intervals / Number of intervals
+Number of intervals = Number of changes - 1
+```
+
+<Info>
+Server icon statistics help identify how frequently a server updates its branding. Statistics become more accurate with more data points.
+</Info>
+
+---
+
+## /ping
+
+Checks the bot's latency and responsiveness.
+
+### Parameters
+This command has no parameters.
+
+### Behavior
+- Calculates API latency by measuring time from command creation to response
+- Provides instant feedback about bot performance
+- Can be used anywhere (servers or DMs)
+
+### Example Usage
+```
+/ping
+```
+
+### Expected Response
+```
+🏓 Pong!
+Latency: 42ms
+```
+
+### Latency Interpretation
+- **< 100ms**: Excellent - Bot is very responsive
+- **100-300ms**: Good - Normal operation
+- **300-500ms**: Fair - Slight delay may be noticeable
+- **> 500ms**: Poor - Bot may be experiencing issues
+
+<Note>
+The latency shown is the API latency (time from command creation to response), not gateway/WebSocket latency.
+</Note>

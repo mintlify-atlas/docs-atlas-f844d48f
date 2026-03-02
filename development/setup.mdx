@@ -1,0 +1,381 @@
+---
+title: Development Setup
+description: Set up your development environment for PFP Checker
+---
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+### Required Software
+
+- **Rust 1.86 or newer**: Install via [rustup](https://rustup.rs/)
+  ```bash
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  ```
+
+- **SQLite**: Database engine for local development
+  - macOS: `brew install sqlite`
+  - Ubuntu/Debian: `apt-get install sqlite3 libsqlite3-dev`
+  - Windows: Download from [sqlite.org](https://www.sqlite.org/download.html)
+
+- **Git**: Version control system
+
+### Required Accounts & Keys
+
+- **Discord Bot Token**: Create a bot at the [Discord Developer Portal](https://discord.com/developers/applications)
+- **ImgBB API Key**: Get a free API key at [ImgBB](https://imgbb.com/)
+
+<Note>
+  ImgBB is used to host profile picture and server icon images for historical tracking.
+</Note>
+
+## Installation Steps
+
+Follow these steps to set up your development environment:
+
+<Steps>
+  <Step title="Install SQLx CLI">
+    The SQLx command-line interface is required for database migrations:
+    
+    ```bash
+    cargo install sqlx-cli --no-default-features --features sqlite
+    ```
+    
+    This installs the SQLx CLI with SQLite support only.
+  </Step>
+  
+  <Step title="Clone the repository">
+    Clone your fork of the repository (or the main repository):
+    
+    ```bash
+    git clone https://github.com/YOUR-USERNAME/pfp-checker.git
+    cd pfp-checker
+    ```
+    
+    Replace `YOUR-USERNAME` with your GitHub username if you've forked the repository.
+  </Step>
+  
+  <Step title="Create configuration file">
+    Copy the example environment file:
+    
+    ```bash
+    cp .env.example .env
+    ```
+    
+    Edit the `.env` file with your credentials:
+    
+    ```bash .env
+    DISCORD_TOKEN=your_discord_bot_token_here
+    IMGBB_KEY=your_imgbb_api_key_here
+    DATABASE_URL=sqlite:database.sqlite
+    ```
+    
+    <Warning>
+      Never commit your `.env` file to version control. It contains sensitive credentials.
+    </Warning>
+  </Step>
+  
+  <Step title="Set up the database">
+    Initialize the SQLite database and run all migrations:
+    
+    ```bash
+    sqlx database setup --database-url sqlite:database.sqlite
+    ```
+    
+    This command will:
+    - Create the `database.sqlite` file if it doesn't exist
+    - Run all migration files from the `migrations/` directory
+    - Set up the complete schema with all tables and indexes
+    
+    <Info>
+      If you need to reset the database later, use `sqlx database reset --database-url sqlite:database.sqlite`
+    </Info>
+  </Step>
+  
+  <Step title="Build the project">
+    Compile the project in debug mode:
+    
+    ```bash
+    cargo build
+    ```
+    
+    This downloads all dependencies and compiles the bot. The first build may take several minutes.
+    
+    For a release build with optimizations:
+    
+    ```bash
+    cargo build --release
+    ```
+  </Step>
+  
+  <Step title="Run the tests">
+    Verify your setup by running the test suite:
+    
+    ```bash
+    cargo test
+    ```
+    
+    All tests should pass. If any fail, check your configuration and database setup.
+  </Step>
+</Steps>
+
+## Running the Bot Locally
+
+Once your environment is set up, you can run the bot:
+
+### Development Mode
+
+Run the bot with debug information and faster compilation:
+
+```bash
+cargo run
+```
+
+You should see output like:
+```
+BotName is connected!
+Updated Global Application Commands
+```
+
+### Release Mode
+
+For production-like testing with optimizations:
+
+```bash
+cargo run --release
+```
+
+### Running with Logs
+
+To see detailed logs, set the `RUST_LOG` environment variable:
+
+```bash
+RUST_LOG=debug cargo run
+```
+
+Log levels:
+- `error`: Only errors
+- `warn`: Warnings and errors
+- `info`: Informational messages (default)
+- `debug`: Detailed debugging information
+- `trace`: Very detailed trace information
+
+## Testing Your Changes
+
+### Running Tests
+
+Run the complete test suite:
+```bash
+cargo test
+```
+
+Run specific tests:
+```bash
+cargo test test_name
+```
+
+Run tests with output:
+```bash
+cargo test -- --nocapture
+```
+
+### Code Formatting
+
+Format your code according to Rust standards:
+```bash
+cargo fmt
+```
+
+Check formatting without making changes:
+```bash
+cargo fmt -- --check
+```
+
+### Linting with Clippy
+
+Run Clippy to catch common mistakes and improve code quality:
+```bash
+cargo clippy
+```
+
+For more strict checking:
+```bash
+cargo clippy -- -D warnings
+```
+
+## Discord Bot Setup
+
+To test the bot in Discord:
+
+<Steps>
+  <Step title="Create a Discord application">
+    1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
+    2. Click "New Application"
+    3. Give your bot a name and create it
+  </Step>
+  
+  <Step title="Create a bot user">
+    1. In your application, go to the "Bot" section
+    2. Click "Add Bot"
+    3. Copy the bot token and add it to your `.env` file
+    
+    <Warning>
+      Keep your bot token secret! Reset it immediately if it's ever exposed.
+    </Warning>
+  </Step>
+  
+  <Step title="Configure bot permissions">
+    Your bot needs these permissions:
+    - Read Messages/View Channels
+    - Send Messages
+    - Use Slash Commands
+    
+    In the "OAuth2" > "URL Generator" section:
+    1. Select scopes: `bot`, `applications.commands`
+    2. Select permissions: the ones listed above
+    3. Copy the generated URL
+  </Step>
+  
+  <Step title="Invite the bot to a test server">
+    1. Use the URL from the previous step
+    2. Select a Discord server where you have admin permissions
+    3. Authorize the bot
+    
+    <Note>
+      Create a private test server for development to avoid disrupting real users.
+    </Note>
+  </Step>
+</Steps>
+
+## Database Management
+
+### Viewing the Database
+
+Use the SQLite CLI to inspect your database:
+
+```bash
+sqlite3 database.sqlite
+```
+
+Useful SQLite commands:
+```sql
+-- List all tables
+.tables
+
+-- Show table schema
+.schema User
+
+-- Query data
+SELECT * FROM User;
+
+-- Exit SQLite
+.exit
+```
+
+### Reset Database
+
+To start fresh with a clean database:
+
+```bash
+sqlx database reset --database-url sqlite:database.sqlite
+```
+
+<Warning>
+  This will delete all data! Use with caution.
+</Warning>
+
+### Applying New Migrations
+
+When new migrations are added:
+
+```bash
+sqlx migrate run --database-url sqlite:database.sqlite
+```
+
+## Common Issues
+
+<AccordionGroup>
+  <Accordion title="SQLx compile-time verification fails">
+    SQLx verifies queries at compile time. If migrations haven't been run, compilation will fail.
+    
+    **Solution:**
+    ```bash
+    sqlx database setup --database-url sqlite:database.sqlite
+    ```
+    
+    Or set offline mode:
+    ```bash
+    export SQLX_OFFLINE=true
+    ```
+  </Accordion>
+  
+  <Accordion title="Bot doesn't respond to commands">
+    Common causes:
+    - Bot token is incorrect
+    - Bot lacks necessary permissions
+    - Commands haven't been registered (wait ~1 minute after startup)
+    - Bot is not in the server
+    
+    **Solution:** Check logs for error messages and verify bot permissions.
+  </Accordion>
+  
+  <Accordion title="Database connection errors">
+    If you see connection errors:
+    
+    **Solution:**
+    1. Verify `DATABASE_URL` in `.env` is correct
+    2. Ensure database file exists and is readable
+    3. Check file permissions on `database.sqlite`
+  </Accordion>
+  
+  <Accordion title="Build fails with dependency errors">
+    If dependencies fail to download or compile:
+    
+    **Solution:**
+    ```bash
+    # Update Rust
+    rustup update
+    
+    # Clean build cache
+    cargo clean
+    
+    # Rebuild
+    cargo build
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Development Tools
+
+### Recommended VS Code Extensions
+
+- **rust-analyzer**: Rust language support with excellent IDE features
+- **Even Better TOML**: Better support for `Cargo.toml`
+- **CodeLLDB**: Debugging support for Rust
+- **crates**: Manage Cargo.toml dependencies
+
+### Alternative IDEs
+
+- **IntelliJ IDEA / CLion**: With Rust plugin
+- **Vim/Neovim**: With rust-analyzer via LSP
+- **Emacs**: With rust-mode and rust-analyzer
+
+## Next Steps
+
+Now that your development environment is set up:
+
+<CardGroup cols={2}>
+  <Card title="Architecture Guide" icon="sitemap" href="/development/architecture">
+    Learn how the codebase is structured
+  </Card>
+  <Card title="Database Schema" icon="database" href="/development/database">
+    Understand the database design
+  </Card>
+  <Card title="Contributing Guidelines" icon="code-pull-request" href="/development/overview">
+    Review contribution workflow
+  </Card>
+  <Card title="Commands Reference" icon="terminal" href="/commands/overview">
+    See all available bot commands
+  </Card>
+</CardGroup>

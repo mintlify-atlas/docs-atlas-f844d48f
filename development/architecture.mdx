@@ -1,0 +1,458 @@
+---
+title: Architecture
+description: Understanding PFP Checker's codebase structure and design patterns
+---
+
+## Project Overview
+
+PFP Checker is a Discord bot built with Rust that tracks profile pictures, usernames, and server icons. The codebase is designed for clarity, maintainability, and performance using modern Rust patterns and async/await.
+
+### Technology Stack
+
+- **Serenity 0.12**: Discord API library with async support
+- **SQLx 0.8**: Async SQL with compile-time query verification
+- **Tokio 1.48**: Async runtime for concurrent operations
+- **SQLite**: Embedded database for data persistence
+- **Reqwest 0.12**: HTTP client for image downloads and API calls
+
+<Info>
+  The bot is built with Rust 1.86+ and uses the 2021 edition language features.
+</Info>
+
+## Project Structure
+
+The source code is organized into clear, focused modules:
+
+```
+src/
+├── main.rs                 # Application entry point and event handlers
+├── commands/               # Discord slash command implementations
+│   ├── mod.rs
+│   ├── monitor.rs          # Start tracking a user
+│   ├── removemonitor.rs    # Stop tracking a user
+│   ├── pfphistory.rs       # View user's profile picture history
+│   ├── usernamehistory.rs  # View user's username history
+│   ├── stats.rs            # User profile picture statistics
+│   ├── monitorserver.rs    # Start tracking a server
+│   ├── removemonitorserver.rs  # Stop tracking a server
+│   ├── serverpfphistory.rs # View server icon history
+│   ├── serverstats.rs      # Server icon statistics
+│   └── ping.rs             # Health check command
+├── db/                     # Database connection and management
+│   ├── mod.rs
+│   └── connection.rs       # SQLite pool setup and migrations
+└── util/                   # Utility modules and helpers
+    ├── mod.rs
+    ├── chron_update.rs     # Automatic update scheduler
+    ├── config.rs           # Environment configuration
+    ├── objects.rs          # Shared data structures
+    └── external/           # External service integrations
+        ├── mod.rs
+        └── imgbb.rs        # ImgBB image hosting API
+```
+
+## Core Components
+
+### main.rs - Application Entry Point
+
+The `main.rs` file (`src/main.rs:368-387`) contains:
+
+- **Application initialization**: Config loading and database setup
+- **Discord client creation**: Serenity client with event handlers
+- **Event handling**: Command routing and interaction responses
+
+#### Handler Structure
+
+The `Handler` struct implements Serenity's `EventHandler` trait:
+
+```rust
+struct Handler {
+    database: Arc<sqlx::SqlitePool>,
+}
+```
+
+Key responsibilities:
+- Route incoming slash commands to appropriate handlers
+- Handle button interactions for pagination
+- Manage the automatic update scheduler
+
+### Event Handling Flow
+
+<Steps>
+  <Step title="Command received">
+    Discord sends an interaction to the bot when a user executes a slash command.
+  </Step>
+  
+  <Step title="interaction_create event">
+    The `Handler::interaction_create` method (`src/main.rs:24-246`) is called with the interaction data.
+  </Step>
+  
+  <Step title="Command routing">
+    The command name is matched to the appropriate handler function:
+    
+    ```rust
+    match command.data.name.as_str() {
+        "ping" => commands::ping::run(&ctx, &command).await,
+        "monitor" => commands::monitor::run(&ctx, &command, &database, ...).await,
+        // ... other commands
+    }
+    ```
+  </Step>
+  
+  <Step title="Command execution">
+    The command handler performs the requested operation (database query, API call, etc.).
+  </Step>
+  
+  <Step title="Response sent">
+    The handler sends a response back to Discord, which displays it to the user.
+  </Step>
+</Steps>
+
+### Command Registration System
+
+Commands are registered globally when the bot starts (`src/main.rs:248-284`):
+
+```rust
+async fn ready(&self, ctx: Context, ready: Ready) {
+    Command::set_global_commands(
+        &ctx.http,
+        vec![
+            commands::ping::register(),
+            commands::monitor::register(),
+            // ... all command definitions
+        ],
+    ).await;
+}
+```
+
+Each command module exports a `register()` function that returns a `CreateCommand` builder defining:
+- Command name
+- Description
+- Parameters and their types
+- Required permissions
+
+<Note>
+  Global commands can take up to 1 hour to propagate across all Discord servers. For faster development, consider using guild-specific commands.
+</Note>
+
+## Module Breakdown
+
+### Commands Module
+
+Location: `src/commands/`
+
+Each command is implemented as a separate module with:
+
+- **`register()` function**: Returns command definition for Discord
+- **`run()` function**: Async handler that executes the command logic
+- **Helper functions**: Pagination, formatting, data fetching
+
+#### Command Categories
+
+**User Tracking Commands:**
+- `monitor.rs`: Add users to tracking database
+- `removemonitor.rs`: Remove users from tracking
+- `pfphistory.rs`: Display paginated profile picture history
+- `usernamehistory.rs`: Display paginated username history
+- `stats.rs`: Calculate and display statistics
+
+**Server Tracking Commands:**
+- `monitorserver.rs`: Start tracking server icons
+- `removemonitorserver.rs`: Stop tracking server icons
+- `serverpfphistory.rs`: Display server icon history with pagination
+- `serverstats.rs`: Server icon change statistics
+
+**Utility Commands:**
+- `ping.rs`: Simple health check command
+
+### Database Module
+
+Location: `src/db/`
+
+#### Connection Management
+
+File: `src/db/connection.rs`
+
+The database module provides:
+
+```rust
+pub async fn establish_connection(database_url: &str) 
+    -> Result<Arc<Pool<Sqlite>>, sqlx::Error>
+```
+
+This function:
+1. Creates a SQLite connection pool (max 5 connections)
+2. Creates the database file if it doesn't exist
+3. Runs all pending migrations from `migrations/`
+4. Returns an `Arc`-wrapped pool for sharing across threads
+
+<Info>
+  SQLx's compile-time query verification ensures all database queries are valid at build time.
+</Info>
+
+### Utility Module
+
+Location: `src/util/`
+
+#### Automatic Update Scheduler
+
+File: `src/util/chron_update.rs`
+
+The scheduler runs on a 30-minute interval (`src/main.rs:273-281`):
+
+```rust
+let update_scheduler = task::spawn(async move {
+    let mut interval = interval(Duration::from_secs(30 * 60));
+    
+    loop {
+        interval.tick().await;
+        util::chron_update::update_monitored_users(&ctx.http, &database_clone).await;
+        util::chron_update::update_monitored_servers(&ctx.http, &database_clone).await;
+    }
+});
+```
+
+**Update Process:**
+
+<Steps>
+  <Step title="Fetch monitored entities">
+    Query the database for all tracked users and servers.
+  </Step>
+  
+  <Step title="Download current images">
+    Use Discord API to get current profile pictures/server icons.
+  </Step>
+  
+  <Step title="Calculate checksums">
+    Compute SHA-1 hash of image data to detect changes.
+  </Step>
+  
+  <Step title="Check for changes">
+    Compare new checksum with most recent database entry.
+  </Step>
+  
+  <Step title="Upload to ImgBB">
+    If image is new, upload to ImgBB for permanent hosting.
+  </Step>
+  
+  <Step title="Store in database">
+    Insert new ProfilePicture or ServerPicture record with timestamp and link.
+  </Step>
+</Steps>
+
+**Generic Update Logic:**
+
+The update system uses a generic helper function (`src/util/chron_update.rs:14-236`) that handles both users and servers:
+
+- Parameterized over entity type (user vs server)
+- Reusable checksum and upload logic
+- Efficient batching of database operations
+
+#### Configuration Management
+
+File: `src/util/config.rs`
+
+The `Config` struct loads environment variables:
+
+```rust
+pub struct Config {
+    pub discord_token: String,
+    pub database_url: String,
+    pub imgbb_key: String,
+}
+```
+
+Loaded from `.env` file using the `dotenvy` crate.
+
+#### Data Structures
+
+File: `src/util/objects.rs`
+
+Shared structs used across modules:
+
+```rust
+pub struct EmbedEntry {
+    pub title: String,
+    pub content: String,
+    pub inline: bool,
+}
+```
+
+Used for building Discord embeds with consistent formatting.
+
+#### External Integrations
+
+Directory: `src/util/external/`
+
+**ImgBB Integration** (`imgbb.rs`):
+- Uploads images to ImgBB hosting service
+- Returns permanent URLs for historical records
+- Handles multipart form data and API authentication
+
+## Design Patterns
+
+### Async/Await Architecture
+
+The entire application is built on async Rust:
+
+- **Tokio runtime**: Multi-threaded async executor
+- **Async database**: Non-blocking SQLx queries
+- **Async Discord API**: Serenity uses async/await
+- **Concurrent updates**: Multiple entities updated in parallel
+
+```rust
+#[tokio::main]
+async fn main() {
+    // Async initialization and execution
+}
+```
+
+### Shared State with Arc
+
+The database pool is wrapped in `Arc<T>` for safe sharing across async tasks:
+
+```rust
+let database = Arc::new(pool);
+```
+
+This allows:
+- Multiple concurrent command handlers accessing the database
+- Background update task sharing the same connection pool
+- Zero-cost reference counting for thread-safe sharing
+
+### Error Handling
+
+The codebase uses Rust's `Result<T, E>` type for error handling:
+
+- Functions return `Result` for operations that can fail
+- SQLx operations return `Result<T, sqlx::Error>`
+- Serenity operations return `Result<T, serenity::Error>`
+- Errors are propagated with `?` operator or handled locally
+
+<Warning>
+  Avoid using `.unwrap()` in production code. Use proper error handling with `?` or `match`.
+</Warning>
+
+### Compile-Time SQL Verification
+
+SQLx verifies queries at compile time:
+
+```rust
+sqlx::query!("SELECT * FROM User WHERE discordId = ?", user_id)
+    .fetch_all(database)
+    .await?
+```
+
+Benefits:
+- Catches SQL errors before runtime
+- Provides type-safe query results
+- Prevents SQL injection
+- Auto-generates result types from schema
+
+### Component Interaction Pattern
+
+Paginated commands use Discord's component system (`src/main.rs:125-243`):
+
+1. Command sends initial embed with navigation buttons
+2. User clicks "Next" or "Back" button
+3. Component interaction received with custom ID
+4. Custom ID parsed to determine page and direction
+5. New embed generated and message updated
+6. Process repeats for subsequent pages
+
+Custom ID format: `{command}_{direction}_{current_page}_{entity_id}`
+
+Example: `pfphistory_next_2_123456789`
+
+## Key Dependencies
+
+From `Cargo.toml`:
+
+### Core Dependencies
+
+- **serenity 0.12**: Discord API library
+  - Features: `client`, `gateway`, `rustls_backend`, `model`, `collector`
+  - Provides async Discord bot framework
+
+- **tokio 1.48**: Async runtime
+  - Features: `macros`, `rt-multi-thread`
+  - Enables async/await and concurrent execution
+
+- **sqlx 0.8**: Database toolkit
+  - Features: `runtime-tokio-rustls`, `sqlite`, `macros`, `migrate`
+  - Compile-time verified queries
+
+### Utility Dependencies
+
+- **chrono 0.4**: Date and time handling
+- **reqwest 0.12**: HTTP client with multipart support
+- **sha1 0.10**: SHA-1 hashing for checksums
+- **dotenvy 0.15**: .env file parsing
+- **base64 0.22**: Base64 encoding/decoding
+- **serde 1.0**: Serialization framework
+- **serde_json 1.0**: JSON parsing
+
+### Development Dependencies
+
+- **tempfile 3.23**: Temporary file creation for tests
+
+## Performance Considerations
+
+### Database Connection Pooling
+
+The application uses a connection pool (`src/db/connection.rs:6-14`):
+
+```rust
+SqlitePoolOptions::new()
+    .max_connections(5)
+    .connect_with(...)
+```
+
+- Reuses connections instead of creating new ones
+- Limits concurrent database operations
+- Prevents resource exhaustion
+
+### Batch Operations
+
+The update scheduler processes entities in batches:
+- Fetches all monitored IDs in single query
+- Updates multiple entities in parallel
+- Reduces database round-trips
+
+### Efficient Image Handling
+
+Images are handled efficiently:
+- Downloaded once and checksummed
+- Only uploaded to ImgBB if new
+- Reuses existing URLs for duplicate images
+- SHA-1 checksums prevent re-uploading identical images
+
+## Testing Strategy
+
+The project uses Rust's built-in testing framework:
+
+```bash
+cargo test
+```
+
+Test organization:
+- Unit tests in the same file as the code they test
+- Integration tests in `tests/` directory (if present)
+- Database tests use temporary SQLite files
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Database Schema" icon="database" href="/development/database">
+    Learn about the database design and migrations
+  </Card>
+  <Card title="Contributing Guide" icon="code-pull-request" href="/development/overview">
+    Start contributing to the project
+  </Card>
+  <Card title="Setup Guide" icon="wrench" href="/development/setup">
+    Set up your development environment
+  </Card>
+  <Card title="Commands Reference" icon="terminal" href="/commands/overview">
+    Explore available bot commands
+  </Card>
+</CardGroup>

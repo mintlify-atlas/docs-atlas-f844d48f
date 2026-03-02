@@ -1,0 +1,413 @@
+---
+title: 'Manual Installation'
+description: 'Build and run PFP Checker from source using Cargo'
+icon: 'terminal'
+---
+
+This guide covers manual installation of PFP Checker by building from source. This method gives you more control over the installation but requires more setup steps than Docker.
+
+## Prerequisites
+
+Ensure you have the following installed on your system:
+
+- [Rust](https://www.rust-lang.org/tools/install) **1.86 or newer** (check with `rustc --version`)
+- [SQLite](https://www.sqlite.org/download.html) 3.x
+- [SQLx CLI](https://github.com/launchbadge/sqlx/tree/main/sqlx-cli) for database migrations
+- Discord Bot Token ([Create a bot](https://discord.com/developers/applications))
+- ImgBB API Key ([Get your key](https://api.imgbb.com/))
+
+<Note>
+  **Rust Version**: The project is built with Rust 1.86. Using an older version may result in compilation errors.
+</Note>
+
+## Installation Steps
+
+<Steps>
+  <Step title="Install Rust">
+    If you don't have Rust installed, use rustup:
+    
+    ```bash
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    source $HOME/.cargo/env
+    ```
+    
+    Verify the installation:
+    
+    ```bash
+    rustc --version
+    cargo --version
+    ```
+  </Step>
+
+  <Step title="Install SQLx CLI">
+    The SQLx CLI is required for database migrations:
+    
+    ```bash
+    cargo install sqlx-cli --no-default-features --features sqlite
+    ```
+    
+    <Info>
+      This installs only the SQLite feature to reduce compilation time and dependencies.
+    </Info>
+  </Step>
+
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/j4ytr1n1ty/pfp-checker.git
+    cd pfp-checker
+    ```
+  </Step>
+
+  <Step title="Configure environment variables">
+    Create your `.env` file from the example:
+    
+    ```bash
+    cp .env.example .env
+    ```
+    
+    Edit `.env` with your credentials:
+    
+    ```bash .env
+    DISCORD_TOKEN=<your-discord-bot-token>
+    IMGBB_KEY=<your-imgbb-api-key>
+    DATABASE_URL=sqlite:database.sqlite
+    ```
+    
+    See the [Configuration](/deployment/configuration) page for detailed information about each variable.
+  </Step>
+
+  <Step title="Set up the database">
+    Create the database and run migrations:
+    
+    ```bash
+    sqlx database setup --database-url sqlite:database.sqlite
+    ```
+    
+    This command will:
+    - Create the SQLite database file
+    - Run all migration files from the `migrations/` directory
+    - Set up the required tables for user tracking, profile pictures, and server icons
+    
+    <Info>
+      **Automatic Migrations**: When running the bot, migrations are applied automatically on startup via the `establish_connection` function in `src/db/connection.rs:17`.
+    </Info>
+  </Step>
+
+  <Step title="Build the project">
+    Compile the project in release mode for optimal performance:
+    
+    ```bash
+    cargo build --release
+    ```
+    
+    The compiled binary will be located at `./target/release/pfp-checker`.
+    
+    <Note>
+      **Build Time**: The first build may take several minutes as Cargo compiles all dependencies. Subsequent builds will be faster.
+    </Note>
+  </Step>
+
+  <Step title="Run the bot">
+    Start the bot:
+    
+    ```bash
+    ./target/release/pfp-checker
+    ```
+    
+    Or run directly with Cargo (development mode):
+    
+    ```bash
+    cargo run --release
+    ```
+    
+    You should see output indicating the bot has connected successfully.
+  </Step>
+</Steps>
+
+## Project Dependencies
+
+The bot is built with the following key dependencies (from `Cargo.toml`):
+
+```toml Cargo.toml
+[package]
+name = "pfp-checker"
+version = "0.5.2"
+edition = "2021"
+
+[dependencies]
+serenity = { version = "0.12", features = ["client", "gateway", "rustls_backend", "model", "collector"] }
+tokio = { version = "1.48.0", features = ["macros", "rt-multi-thread"] }
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio-rustls", "sqlite", "macros", "migrate"] }
+chrono = "0.4.42"
+futures = "0.3.30"
+reqwest = { version = "0.12.24", features = ["multipart"]}
+sha1 = "0.10.6"
+dotenvy = "0.15.7"
+base64 = "0.22.1"
+serde = "1.0.228"
+serde_json = "1.0.145"
+```
+
+<CardGroup cols={2}>
+  <Card title="Serenity" icon="discord">
+    Discord API library for Rust with full bot support
+  </Card>
+  
+  <Card title="SQLx" icon="database">
+    Async, pure Rust SQL library with compile-time checked queries
+  </Card>
+  
+  <Card title="Tokio" icon="bolt">
+    Async runtime for handling concurrent Discord events
+  </Card>
+  
+  <Card title="Reqwest" icon="globe">
+    HTTP client for uploading images to ImgBB
+  </Card>
+</CardGroup>
+
+## Database Migrations
+
+The bot includes several migrations that are applied automatically:
+
+- **20240506183228_initial.sql**: Initial database schema
+- **20240908172815_add_username_changes.sql**: Username tracking table
+- **20241118130945_update_primary_key_of_profile_pictures.sql**: Profile picture schema update
+- **20251119225006_add_server_tracking.sql**: Server icon tracking
+- **20251119233447_add_server_picture_index.sql**: Performance index for server pictures
+
+<Info>
+  Migrations are embedded in the binary and run automatically on startup. No manual intervention is needed.
+</Info>
+
+## Running as a System Service
+
+For production deployments, you can run the bot as a systemd service.
+
+<Steps>
+  <Step title="Create a systemd service file">
+    Create `/etc/systemd/system/pfp-checker.service`:
+    
+    ```ini /etc/systemd/system/pfp-checker.service
+    [Unit]
+    Description=PFP Checker Discord Bot
+    After=network.target
+
+    [Service]
+    Type=simple
+    User=your-username
+    WorkingDirectory=/path/to/pfp-checker
+    Environment="DATABASE_URL=sqlite:/path/to/pfp-checker/database.sqlite"
+    EnvironmentFile=/path/to/pfp-checker/.env
+    ExecStart=/path/to/pfp-checker/target/release/pfp-checker
+    Restart=on-failure
+    RestartSec=10
+
+    [Install]
+    WantedBy=multi-user.target
+    ```
+    
+    <Warning>
+      Replace `/path/to/pfp-checker` with the actual path to your installation directory and `your-username` with your system username.
+    </Warning>
+  </Step>
+
+  <Step title="Reload systemd and enable the service">
+    ```bash
+    # Reload systemd to recognize the new service
+    sudo systemctl daemon-reload
+    
+    # Enable the service to start on boot
+    sudo systemctl enable pfp-checker
+    
+    # Start the service
+    sudo systemctl start pfp-checker
+    ```
+  </Step>
+
+  <Step title="Verify the service is running">
+    ```bash
+    # Check service status
+    sudo systemctl status pfp-checker
+    
+    # View logs
+    sudo journalctl -u pfp-checker -f
+    ```
+  </Step>
+</Steps>
+
+### Managing the Service
+
+```bash
+# Start the service
+sudo systemctl start pfp-checker
+
+# Stop the service
+sudo systemctl stop pfp-checker
+
+# Restart the service
+sudo systemctl restart pfp-checker
+
+# View service status
+sudo systemctl status pfp-checker
+
+# View logs (last 100 lines)
+sudo journalctl -u pfp-checker -n 100
+
+# Follow logs in real-time
+sudo journalctl -u pfp-checker -f
+```
+
+## Development Mode
+
+For development, you can run the bot without building:
+
+```bash
+# Run in development mode (slower, but faster compilation)
+cargo run
+
+# Run with environment variables from .env
+cargo run --release
+
+# Run with verbose output
+RUST_LOG=debug cargo run
+```
+
+<Note>
+  Development builds (`cargo run` without `--release`) are significantly slower at runtime but compile faster. Use `--release` for production.
+</Note>
+
+## Updating the Bot
+
+To update to the latest version:
+
+<Steps>
+  <Step title="Stop the bot">
+    If running as a service:
+    ```bash
+    sudo systemctl stop pfp-checker
+    ```
+    
+    Otherwise, stop the running process with `Ctrl+C`.
+  </Step>
+
+  <Step title="Pull latest changes">
+    ```bash
+    git pull origin main
+    ```
+  </Step>
+
+  <Step title="Run database migrations">
+    ```bash
+    sqlx migrate run --database-url sqlite:database.sqlite
+    ```
+    
+    <Info>
+      This step is optional as migrations run automatically on startup, but it's good practice to run them manually to catch any issues early.
+    </Info>
+  </Step>
+
+  <Step title="Rebuild the project">
+    ```bash
+    cargo build --release
+    ```
+  </Step>
+
+  <Step title="Restart the bot">
+    If running as a service:
+    ```bash
+    sudo systemctl start pfp-checker
+    ```
+    
+    Otherwise:
+    ```bash
+    ./target/release/pfp-checker
+    ```
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Compilation errors">
+    Ensure you're using Rust 1.86 or newer:
+    
+    ```bash
+    rustup update
+    rustc --version
+    ```
+    
+    Clean the build cache and rebuild:
+    
+    ```bash
+    cargo clean
+    cargo build --release
+    ```
+  </Accordion>
+  
+  <Accordion title="SQLx CLI installation fails">
+    If you encounter errors installing SQLx CLI, ensure you have the necessary system dependencies:
+    
+    **Ubuntu/Debian:**
+    ```bash
+    sudo apt-get install libsqlite3-dev pkg-config libssl-dev
+    ```
+    
+    **macOS:**
+    ```bash
+    brew install sqlite openssl pkg-config
+    ```
+  </Accordion>
+  
+  <Accordion title="Database migration errors">
+    If migrations fail, check your DATABASE_URL:
+    
+    ```bash
+    # Verify the database file exists
+    ls -l database.sqlite
+    
+    # Try running migrations manually
+    sqlx migrate run --database-url sqlite:database.sqlite
+    ```
+    
+    If the database is corrupted, you can reset it:
+    
+    ```bash
+    # Backup your data first!
+    mv database.sqlite database.sqlite.bak
+    
+    # Create fresh database
+    sqlx database setup --database-url sqlite:database.sqlite
+    ```
+  </Accordion>
+  
+  <Accordion title="Bot fails to connect to Discord">
+    Verify your Discord token is valid:
+    
+    - Check your `.env` file for the correct token
+    - Ensure there are no extra spaces or quotes
+    - Verify the bot is not already running elsewhere
+    - Check Discord's status page for API issues
+  </Accordion>
+  
+  <Accordion title="Permission denied when running binary">
+    Make the binary executable:
+    
+    ```bash
+    chmod +x ./target/release/pfp-checker
+    ./target/release/pfp-checker
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration" icon="gear" href="/deployment/configuration">
+    Learn about all available environment variables and configuration options
+  </Card>
+  
+  <Card title="Docker Deployment" icon="docker" href="/deployment/docker">
+    Prefer containerized deployment? Check out the Docker guide
+  </Card>
+</CardGroup>

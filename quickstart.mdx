@@ -1,80 +1,333 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get PFP Checker running and track your first profile picture in 5 minutes
 ---
 
-## Get started in three steps
+# Quickstart Guide
 
-Get your documentation site running locally and make your first customization.
+Get your PFP Checker bot up and running in just a few minutes. This guide will take you from creating a Discord bot to monitoring your first user.
 
-### Step 1: Set up your local environment
+## Prerequisites
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+Before you begin, you'll need:
+
+<Steps>
+  <Step title="Discord Bot Token">
+    You'll need a Discord bot token from the [Discord Developer Portal](https://discord.com/developers/applications). If you don't have one yet, we'll create it in the next step.
+  </Step>
+  
+  <Step title="ImgBB API Key">
+    Profile pictures are stored on ImgBB. Get a free API key from [ImgBB API](https://api.imgbb.com/). It's free and takes less than a minute to sign up.
+  </Step>
+  
+  <Step title="Docker (Recommended)">
+    The easiest way to run PFP Checker is with Docker. Install [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) for your platform.
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    Alternatively, you can run it manually with Rust 1.86+ and SQLite installed.
+  </Step>
+</Steps>
+
+## Step 1: Create Your Discord Bot
+
+<Steps>
+  <Step title="Open Discord Developer Portal">
+    Navigate to the [Discord Developer Portal](https://discord.com/developers/applications) and click **New Application**.
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+    Give your application a name (e.g., "PFP Checker") and accept the terms.
+  </Step>
+  
+  <Step title="Create a Bot User">
+    In the left sidebar, click **Bot**, then click **Add Bot**.
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    Under the bot's username, you'll see a **Token** section. Click **Reset Token** and copy it. You'll need this for your `.env` file.
+    
+    <Warning>
+      Never share your bot token publicly! Treat it like a password. If it's leaked, reset it immediately in the Developer Portal.
+    </Warning>
+  </Step>
+  
+  <Step title="Configure Bot Permissions">
+    Scroll down to **Privileged Gateway Intents** and ensure these are **disabled** (PFP Checker doesn't need them):
+    - Presence Intent
+    - Server Members Intent
+    - Message Content Intent
+    
+    The bot only needs basic Discord API access to function.
+  </Step>
+  
+  <Step title="Generate Invite Link">
+    Go to **OAuth2** → **URL Generator** in the left sidebar.
+    
+    Select the following scopes:
+    - `bot`
+    - `applications.commands`
+    
+    Under **Bot Permissions**, select:
+    - `Read Messages/View Channels`
+    
+    Copy the generated URL at the bottom. You'll use this to invite the bot to your server.
+  </Step>
+</Steps>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+## Step 2: Get Your ImgBB API Key
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+<Steps>
+  <Step title="Sign Up for ImgBB">
+    Go to [ImgBB API](https://api.imgbb.com/) and click **Get API Key** or sign in if you already have an account.
+  </Step>
+  
+  <Step title="Copy Your API Key">
+    After signing in, your API key will be displayed on the dashboard. Copy it for use in your `.env` file.
+    
+    <Info>
+      ImgBB's free tier is more than sufficient for most use cases. Each profile picture upload counts against your quota.
+    </Info>
+  </Step>
+</Steps>
 
-### Step 3: Go live
+## Step 3: Deploy the Bot
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+<CodeGroup>
 
-## Next steps
+```bash Docker (Recommended)
+# Clone the repository
+git clone https://github.com/j4ytr1n1ty/pfp-checker.git
+cd pfp-checker
 
-Now that you have your docs running, explore these key features:
+# Create your environment file
+cp .env.example .env
 
-<CardGroup cols={2}>
+# Edit the .env file with your tokens
+# DISCORD_TOKEN=your_discord_token_here
+# IMGBB_KEY=your_imgbb_key_here
+# DATABASE_URL=sqlite:database.sqlite
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
+# Start the bot
+docker-compose up -d
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
+# Check that it's running
+docker-compose logs -f
+```
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
+```bash Manual Installation
+# Clone the repository
+git clone https://github.com/j4ytr1n1ty/pfp-checker.git
+cd pfp-checker
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
+# Install SQLx CLI for migrations
+cargo install sqlx-cli --no-default-features --features sqlite
 
-</CardGroup>
+# Create your environment file
+cp .env.example .env
+
+# Edit the .env file with your tokens
+# Use your preferred editor (nano, vim, etc.)
+nano .env
+
+# Build and run
+cargo build --release
+./target/release/pfp-checker
+```
+
+</CodeGroup>
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  The first time you run the bot, SQLx will automatically create the SQLite database and run all migrations. You should see log messages confirming the database setup.
 </Note>
+
+## Step 4: Invite Bot to Your Server
+
+<Steps>
+  <Step title="Use the Invite Link">
+    Open the OAuth2 URL you generated in Step 1 in your web browser.
+  </Step>
+  
+  <Step title="Select a Server">
+    Choose the server you want to add the bot to from the dropdown menu. You must have "Manage Server" permission on the server.
+  </Step>
+  
+  <Step title="Authorize the Bot">
+    Click **Authorize** and complete the CAPTCHA if prompted.
+    
+    You should see a confirmation message, and the bot will appear in your server's member list.
+  </Step>
+  
+  <Step title="Verify Bot is Online">
+    In any channel, type `/ping` and press Enter.
+    
+    The bot should respond with:
+    ```
+    🏓 Pong!
+    Latency: XXms
+    ```
+    
+    If you see this response, your bot is working correctly!
+  </Step>
+</Steps>
+
+## Step 5: Track Your First User
+
+Now let's monitor a user and view their profile picture history.
+
+<Steps>
+  <Step title="Start Monitoring a User">
+    In any channel, use the `/monitor` command:
+    
+    ```
+    /monitor @username
+    ```
+    
+    Replace `@username` with any user in your server (you can tag yourself to test).
+    
+    The bot will respond:
+    ```
+    Successfully added username to the monitoring list.
+    ```
+  </Step>
+  
+  <Step title="Wait for First Check">
+    The bot checks for profile picture changes every 30 minutes. The first check will capture the user's current profile picture and username as the baseline.
+    
+    <Info>
+      You won't see any history until the first automatic check runs (within 30 minutes) or until the user actually changes their profile picture.
+    </Info>
+  </Step>
+  
+  <Step title="View Profile Picture History">
+    After at least 30 minutes have passed, check the user's history:
+    
+    ```
+    /pfphistory @username
+    ```
+    
+    You'll see an embedded message showing all recorded profile pictures with:
+    - Timestamp of when it was first recorded
+    - Link to the archived image
+    - SHA-1 checksum for verification
+    
+    If there are more than 10 entries, use the **Back** and **Next** buttons to navigate pages.
+  </Step>
+  
+  <Step title="Check Username History">
+    You can also view username changes:
+    
+    ```
+    /usernamehistory @username
+    ```
+    
+    This shows all usernames the user has had since monitoring began.
+  </Step>
+  
+  <Step title="View Statistics">
+    Once the user has had at least 2 profile picture changes recorded, you can view statistics:
+    
+    ```
+    /stats @username
+    ```
+    
+    This displays:
+    - Average time between profile picture changes (in hours and days)
+    - Total number of changes since monitoring began
+    - Date monitoring started
+  </Step>
+</Steps>
+
+## Step 6: Track Your Server
+
+You can also monitor your server's icon changes.
+
+<Steps>
+  <Step title="Enable Server Monitoring">
+    Run this command in the server you want to track:
+    
+    ```
+    /monitorserver
+    ```
+    
+    <Note>
+      You need "Manage Server" permission to enable server monitoring.
+    </Note>
+    
+    The bot will respond:
+    ```
+    Successfully added [Server Name] to the server monitoring list.
+    ```
+  </Step>
+  
+  <Step title="View Server Icon History">
+    After at least 30 minutes (or after the server icon changes), view the history:
+    
+    ```
+    /serverpfphistory
+    ```
+    
+    This shows all server icons with timestamps and archived links.
+  </Step>
+  
+  <Step title="Check Server Statistics">
+    View statistics about server icon changes:
+    
+    ```
+    /serverstats
+    ```
+    
+    Similar to user stats, this shows average change frequency and total count.
+  </Step>
+</Steps>
+
+## Quick Command Reference
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `/ping` | Check if bot is online | `/ping` |
+| `/monitor @user` | Start tracking a user | `/monitor @john` |
+| `/pfphistory @user` | View profile picture history | `/pfphistory @john` |
+| `/usernamehistory @user` | View username history | `/usernamehistory @john` |
+| `/stats @user` | View user statistics | `/stats @john` |
+| `/monitorserver` | Track this server's icon | `/monitorserver` |
+| `/serverpfphistory` | View server icon history | `/serverpfphistory` |
+| `/serverstats` | View server statistics | `/serverstats` |
+| `/removemonitor @user` | Stop tracking a user | `/removemonitor @john` |
+| `/removemonitorserver` | Stop tracking this server | `/removemonitorserver` |
+
+## Troubleshooting
+
+### Bot doesn't respond to commands
+
+1. Verify the bot is online (green status in member list)
+2. Check Docker logs: `docker-compose logs -f`
+3. Ensure the bot has permission to read messages in the channel
+4. Verify your Discord token is correct in `.env`
+
+### "No history found" message
+
+This is normal if:
+- Less than 30 minutes have passed since adding the user/server
+- The user/server hasn't changed their picture since monitoring began
+
+Wait at least 30 minutes for the first automatic check to complete.
+
+### Images not uploading
+
+1. Verify your ImgBB API key is correct in `.env`
+2. Check that you haven't exceeded ImgBB's rate limits
+3. Restart the bot after updating `.env`: `docker-compose restart`
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Full Installation Guide"
+    icon="book"
+    href="/installation"
+  >
+    Learn about production deployment and advanced configuration
+  </Card>
+  <Card
+    title="All Commands"
+    icon="terminal"
+    href="/commands/overview"
+  >
+    Explore all available commands in detail
+  </Card>
+</CardGroup>

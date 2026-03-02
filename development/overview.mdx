@@ -1,0 +1,244 @@
+---
+title: Contributing Overview
+description: Learn how to contribute to the PFP Checker Discord bot project
+---
+
+## Welcome Contributors
+
+Thank you for your interest in contributing to PFP Checker! This open-source Discord bot is built with Rust and tracks profile pictures, usernames, and server icons. We welcome contributions of all kinds: bug fixes, new features, documentation improvements, and more.
+
+## Code of Conduct
+
+By participating in this project, you are expected to uphold our Code of Conduct:
+
+- **Be respectful**: Treat all contributors with respect and professionalism
+- **Be constructive**: Provide helpful feedback and suggestions
+- **Be collaborative**: Work together to improve the project
+
+## Getting Started
+
+To start contributing to PFP Checker, follow these steps:
+
+<Steps>
+  <Step title="Fork the repository">
+    Visit the [GitHub repository](https://github.com/j4ytr1n1ty/pfp-checker) and click the "Fork" button to create your own copy.
+  </Step>
+  
+  <Step title="Clone your fork">
+    ```bash
+    git clone https://github.com/YOUR-USERNAME/pfp-checker.git
+    cd pfp-checker
+    ```
+  </Step>
+  
+  <Step title="Create a feature branch">
+    ```bash
+    git checkout -b feature/your-feature-name
+    ```
+    
+    Use descriptive branch names like `feature/add-cooldown-tracking` or `fix/database-connection-leak`.
+  </Step>
+</Steps>
+
+<Note>
+  Before making significant changes, consider opening an issue to discuss your ideas with the maintainers.
+</Note>
+
+## Development Workflow
+
+Once you've set up your development environment (see [Setup Guide](/development/setup)), follow this workflow:
+
+### Making Changes
+
+1. **Write your code**: Make your changes in your feature branch
+2. **Write or update tests**: Ensure your changes are covered by tests
+3. **Test your changes**: Run the test suite to verify everything works
+   ```bash
+   cargo test
+   ```
+4. **Format your code**: Use Rust's standard formatter
+   ```bash
+   cargo fmt
+   ```
+5. **Run the linter**: Check for common issues and code quality
+   ```bash
+   cargo clippy
+   ```
+6. **Update documentation**: If you've changed functionality, update relevant documentation
+
+### Code Quality Standards
+
+- Follow standard Rust style conventions
+- Use meaningful variable and function names
+- Comment complex sections of code
+- Keep functions small and focused
+- Avoid unwrap() in production code - use proper error handling
+
+### Submitting Changes
+
+<Steps>
+  <Step title="Commit your changes">
+    ```bash
+    git add .
+    git commit -m "Add feature: brief description"
+    ```
+    
+    Write clear, concise commit messages that explain the "why" behind your changes.
+  </Step>
+  
+  <Step title="Push to your fork">
+    ```bash
+    git push origin feature/your-feature-name
+    ```
+  </Step>
+  
+  <Step title="Submit a pull request">
+    1. Go to the original repository on GitHub
+    2. Click "New Pull Request"
+    3. Select your fork and branch
+    4. Describe your changes in detail
+    5. Link any related issues using `Fixes #123` or `Closes #123`
+  </Step>
+</Steps>
+
+## Pull Request Process
+
+When you submit a pull request:
+
+1. **Include tests**: If adding functionality, include appropriate tests
+2. **Update documentation**: Update README.md or other docs if needed
+3. **Await review**: A maintainer will review your PR and may request changes
+4. **Address feedback**: Make any requested changes promptly
+5. **Merge**: Once approved, a maintainer will merge your PR
+
+<Info>
+  Pull requests are typically reviewed within a few days. Be patient and responsive to feedback.
+</Info>
+
+## Testing Approach
+
+PFP Checker uses Rust's built-in testing framework:
+
+- **Unit tests**: Test individual functions and modules
+- **Integration tests**: Test component interactions
+- **Database tests**: Use temporary databases for testing queries
+
+Run all tests:
+```bash
+cargo test
+```
+
+Run specific tests:
+```bash
+cargo test test_name
+```
+
+Run tests with output:
+```bash
+cargo test -- --nocapture
+```
+
+## Database Migrations
+
+If your contribution requires database schema changes:
+
+<Steps>
+  <Step title="Create a new migration">
+    ```bash
+    sqlx migrate add your_migration_name
+    ```
+    
+    This creates a new SQL file in the `migrations/` directory with a timestamp prefix.
+  </Step>
+  
+  <Step title="Edit the migration file">
+    Write your SQL schema changes in the generated file. Include both forward migrations and any necessary rollback logic in comments.
+  </Step>
+  
+  <Step title="Test the migration">
+    ```bash
+    sqlx database reset --database-url sqlite:database.sqlite
+    ```
+    
+    This drops the database, recreates it, and runs all migrations.
+  </Step>
+  
+  <Step title="Update queries">
+    If you've changed the schema, update any affected SQLx queries in the codebase.
+  </Step>
+</Steps>
+
+<Warning>
+  Always test migrations thoroughly. Database changes can cause data loss if not handled properly.
+</Warning>
+
+See the [Database Guide](/development/database) for more details on the schema and migration workflow.
+
+## What to Contribute
+
+Here are some ways you can contribute:
+
+### Bug Fixes
+- Fix issues listed in the GitHub issue tracker
+- Resolve compiler warnings or clippy suggestions
+- Improve error handling and edge cases
+
+### New Features
+- Add new Discord commands
+- Implement tracking for additional Discord entities
+- Add statistics and analytics features
+- Improve the automatic update scheduler
+
+### Documentation
+- Improve inline code documentation
+- Add examples to README.md
+- Write tutorials or guides
+- Fix typos or clarify existing docs
+
+### Performance
+- Optimize database queries
+- Reduce memory usage
+- Improve response times
+
+### Code Quality
+- Refactor complex functions
+- Add missing tests
+- Improve error messages
+- Reduce code duplication
+
+## Getting Help
+
+If you have questions or need assistance:
+
+- **Open an issue**: For bugs, feature requests, or questions
+- **Check existing issues**: Someone may have already asked your question
+- **Read the documentation**: Review the [Architecture](/development/architecture) and [Setup](/development/setup) guides
+- **Review the code**: The codebase is well-organized and documented
+
+<Note>
+  Don't hesitate to ask questions! The maintainers are happy to help contributors get started.
+</Note>
+
+## Recognition
+
+All contributors will be:
+- Listed in the project's contributors page on GitHub
+- Acknowledged in release notes for their contributions
+- Part of an open-source community building useful tools
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Setup Guide" icon="wrench" href="/development/setup">
+    Set up your development environment
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/development/architecture">
+    Learn about the codebase structure
+  </Card>
+  <Card title="Database Schema" icon="database" href="/development/database">
+    Understand the database design
+  </Card>
+  <Card title="GitHub Repository" icon="github" href="https://github.com/j4ytr1n1ty/pfp-checker">
+    View the source code
+  </Card>
+</CardGroup>

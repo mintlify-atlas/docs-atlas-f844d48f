@@ -1,0 +1,151 @@
+---
+title: Introduction
+description: Track and archive Discord profile pictures, usernames, and server icons with comprehensive statistics
+---
+
+# Welcome to PFP Checker
+
+PFP Checker is a Discord bot that tracks and archives profile pictures, username changes, and server icons. Built with Rust for blazing-fast performance, it provides comprehensive historical records and statistics about how often users and servers change their visual identity.
+
+<Info>
+  **Ever wondered how many times your friends change their profile pictures?** PFP Checker automatically monitors and archives every change, giving you complete visibility into profile picture and username history.
+</Info>
+
+## Get Started
+
+<CardGroup cols={2}>
+  <Card
+    title="Quickstart Guide"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Get your bot up and running in minutes with our step-by-step guide
+  </Card>
+  <Card
+    title="Installation & Setup"
+    icon="screwdriver-wrench"
+    href="/installation"
+  >
+    Detailed installation instructions for Docker and manual deployment
+  </Card>
+  <Card
+    title="User Tracking Guide"
+    icon="user"
+    href="/guides/user-tracking"
+  >
+    Learn how to monitor users and view their profile picture and username history
+  </Card>
+  <Card
+    title="Server Tracking Guide"
+    icon="server"
+    href="/guides/server-tracking"
+  >
+    Track server icon changes and view comprehensive server statistics
+  </Card>
+  <Card
+    title="Statistics & Analytics"
+    icon="chart-line"
+    href="/guides/statistics"
+  >
+    Understand change patterns with detailed statistics and averages
+  </Card>
+  <Card
+    title="Deployment Guide"
+    icon="docker"
+    href="/deployment/docker"
+  >
+    Deploy to production with Docker Compose and automatic updates
+  </Card>
+</CardGroup>
+
+## Key Features
+
+### Comprehensive User Tracking
+
+Monitor Discord users to automatically archive their profile pictures and usernames. Every change is timestamped and stored with a unique checksum, creating a complete historical record.
+
+- **Profile Picture History**: View every profile picture a user has had since monitoring began
+- **Username History**: Track all username changes with timestamps
+- **Automatic Monitoring**: Checks for changes every 30 minutes
+- **Permanent Archives**: Images are uploaded to ImgBB for long-term storage
+
+### Server Icon Tracking
+
+Track server (guild) icon changes with the same comprehensive approach. Perfect for documenting your community's visual evolution.
+
+- **Icon History**: Complete record of all server icon changes
+- **Permission-Based**: Requires "Manage Server" permission to enable tracking
+- **Automatic Updates**: Monitors server icons alongside user profiles
+
+### Advanced Statistics
+
+Go beyond simple history viewing with detailed analytics about change patterns.
+
+- **Average Change Frequency**: Calculate how often users change their profile pictures
+- **Total Change Count**: See how many times changes have occurred
+- **Time-Based Analysis**: Statistics shown in both hours and days
+- **Monitoring Duration**: Track how long monitoring has been active
+
+### Built for Performance
+
+Written in Rust using the Serenity framework, PFP Checker is designed for speed and reliability.
+
+- **Blazing Fast**: Rust's performance means instant command responses
+- **SQLite Database**: Lightweight, embedded database with automatic migrations
+- **Efficient Storage**: SHA-1 checksums prevent duplicate image uploads
+- **Concurrent Processing**: Multi-threaded architecture handles multiple requests
+
+## Why PFP Checker?
+
+**Curiosity and Accountability**: Some users change their profile pictures frequently, making it hard to keep track of who's who. PFP Checker solves this by maintaining a permanent record.
+
+**Community Documentation**: Track your server's visual evolution over time. Perfect for communities that want to document their history.
+
+**Data You Can Trust**: Every profile picture is stored with a SHA-1 checksum to ensure authenticity and prevent duplicates. Timestamps are recorded at the moment of change detection.
+
+**Privacy-Focused**: Only tracks users and servers you explicitly add to the monitoring list. No global tracking or data collection.
+
+**Easy to Deploy**: Available as a Docker container or standalone binary. Set up your own instance in minutes with just a Discord bot token and ImgBB API key.
+
+## How It Works
+
+1. **Add Users or Servers**: Use `/monitor @user` or `/monitorserver` to start tracking
+2. **Automatic Checks**: The bot checks for changes every 30 minutes
+3. **Image Archival**: New profile pictures are uploaded to ImgBB and stored in the database
+4. **View History**: Use `/pfphistory @user` or `/serverpfphistory` to browse changes
+5. **Analyze Patterns**: Use `/stats @user` or `/serverstats` to see change frequency
+
+<Note>
+  The bot needs at least 30 minutes after adding a user or server to start showing history. This is because the first check captures the current state as the baseline.
+</Note>
+
+## Architecture Overview
+
+PFP Checker uses a modern, efficient tech stack:
+
+- **Serenity**: Rust Discord API library for reliable bot functionality
+- **SQLx**: Async SQL toolkit with compile-time query verification
+- **SQLite**: Embedded database with automatic schema migrations
+- **ImgBB**: Image hosting service for permanent profile picture storage
+- **Tokio**: Async runtime for concurrent operations
+
+The bot runs continuously, using a scheduled task to check all monitored users and servers every 30 minutes. When changes are detected, images are uploaded, checksums are calculated, and records are stored in the database.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Follow the Quickstart"
+    icon="play"
+    href="/quickstart"
+  >
+    Get your bot running in 5 minutes
+  </Card>
+  <Card
+    title="Explore Commands"
+    icon="terminal"
+    href="/commands/overview"
+  >
+    Learn about all available commands
+  </Card>
+</CardGroup>

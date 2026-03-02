@@ -1,0 +1,181 @@
+---
+title: User Tracking
+description: Learn how to monitor users and track their profile pictures and usernames
+---
+
+PFP Checker allows you to monitor Discord users and automatically track changes to their profile pictures and usernames. Changes are detected every 30 minutes.
+
+## Starting User Monitoring
+
+<Steps>
+  <Step title="Use the monitor command">
+    To start tracking a user, use the `/monitor` command:
+    
+    ```
+    /monitor @username
+    ```
+    
+    Replace `@username` with the Discord user you want to monitor.
+  </Step>
+  
+  <Step title="Wait for initial data collection">
+    After adding a user, you'll see a confirmation message:
+    
+    ```
+    Successfully added username to the monitoring list.
+    ```
+    
+    <Note>
+      The bot checks for changes every 30 minutes. Wait at least 30 minutes before viewing history to ensure initial data has been collected.
+    </Note>
+  </Step>
+</Steps>
+
+### Already Tracked Users
+
+If you try to monitor a user who is already being tracked, you'll receive a message showing when tracking started:
+
+```
+username is already being tracked since Friday, January 15, 2024 at 3:45 PM
+```
+
+This timestamp tells you when the bot first started monitoring that user.
+
+## Viewing Profile Picture History
+
+Once a user has been monitored for at least 30 minutes, you can view their profile picture history using:
+
+```
+/pfphistory @username
+```
+
+### History Display Format
+
+The bot displays history in an embedded message with the following information:
+
+- **Title**: "Profile Picture History of username#1234"
+- **Entries**: Up to 10 profile pictures per page
+- **Each entry shows**:
+  - When the profile picture was first recorded (relative time)
+  - A link to view the image
+  - A checksum for verification
+
+**Example entry:**
+
+```
+Profile Picture first recorded 3 days ago
+Link: [Look at the previous picture](https://cdn.discordapp.com/...)
+Checksum: a1b2c3d4e5f6...
+```
+
+<Info>
+  The relative timestamp ("3 days ago") updates automatically and shows when that profile picture was first detected by the bot.
+</Info>
+
+### Navigating History Pages
+
+If a user has more than 10 profile picture changes, you'll see pagination controls at the bottom:
+
+- **Back button**: View previous page (disabled on page 1)
+- **Next button**: View next page (disabled on last page)
+- **Footer**: Shows current page (e.g., "Page 2 of 5")
+
+Simply click the buttons to navigate through the history.
+
+## Viewing Username History
+
+Track username changes with:
+
+```
+/usernamehistory @username
+```
+
+The display format is similar to profile picture history:
+
+- **Title**: "Username History of username#1234"
+- **Entries**: Up to 10 usernames per page
+- **Each entry shows**:
+  - When the username was first recorded (relative time)
+  - The actual username at that time
+
+**Example entry:**
+
+```
+Username first recorded 2 weeks ago
+OldUsername123
+```
+
+<Tip>
+  Username history helps you track rebrands, name changes, or identify users who frequently change their display names.
+</Tip>
+
+## Understanding Tracking Start Dates
+
+When you monitor a user, the bot records the exact timestamp when monitoring began. This is important because:
+
+- History only includes changes **after** the tracking start date
+- Previous profile pictures or usernames are not retroactively tracked
+- The start date is displayed in absolute time format (full date and time)
+
+<Note>
+  If you need to track changes from a specific date, make sure to add users to monitoring before that date.
+</Note>
+
+## Removing User Monitors
+
+To stop tracking a user and remove their data:
+
+```
+/removemonitor @username
+```
+
+### Confirmation Messages
+
+**Success:**
+```
+Successfully deleted user.
+```
+
+**User not found:**
+```
+Unable to find user. User may not be tracked.
+```
+
+<Note>
+  Removing a user deletes all stored history including profile pictures and usernames. This action cannot be undone.
+</Note>
+
+## Troubleshooting
+
+### No History Found
+
+If you see this message:
+
+```
+No History Found
+The requested User has not been recorded yet. However they are queued for future monitoring. Please wait at least 30 minutes.
+```
+
+**Solution**: The user was just added to monitoring. Wait at least 30 minutes for the bot to collect initial data.
+
+### User Not Found
+
+If you see:
+
+```
+User not found
+The User you requested the history of could not be found in our Database.
+To add the user to tracking use /monitor @User
+```
+
+**Solution**: The user is not being monitored. Add them using `/monitor @username` first.
+
+### No Entries Found
+
+If you see:
+
+```
+No Profile picture entries found. Please check back in about 30 minutes.
+```
+
+**Solution**: The user is monitored but no changes have been detected yet. The bot will record their current profile picture on the next check cycle (every 30 minutes).

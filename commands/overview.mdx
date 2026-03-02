@@ -1,0 +1,81 @@
+---
+title: "Commands Overview"
+description: "Complete reference for all PFP Checker Discord bot commands"
+---
+
+PFP Checker provides 10 slash commands for tracking and viewing profile pictures, usernames, and server icons.
+
+## Command Categories
+
+### User Commands
+Track individual Discord users and view their profile picture and username history.
+
+| Command | Description |
+|---------|-------------|
+| `/monitor` | Add a user to the monitoring list |
+| `/removemonitor` | Remove a user from the monitoring list |
+| `/pfphistory` | View profile picture history for a user |
+| `/usernamehistory` | View username history for a user |
+| `/stats` | View statistics about a user's profile picture changes |
+
+### Server Commands
+Track server icons and view server icon history.
+
+| Command | Description | Permission Required |
+|---------|-------------|---------------------|
+| `/monitorserver` | Add this server to the monitoring list | Manage Server |
+| `/removemonitorserver` | Remove this server from the monitoring list | Manage Server |
+| `/serverpfphistory` | View server icon history | None |
+| `/serverstats` | View statistics about server icon changes | None |
+
+### General Commands
+
+| Command | Description |
+|---------|-------------|
+| `/ping` | Check bot latency and responsiveness |
+
+## Common Patterns
+
+### Monitoring
+Before viewing history or statistics for a user or server, you must first add them to the monitoring list:
+- For users: `/monitor @user`
+- For servers: `/monitorserver`
+
+### Data Collection
+After adding a user or server to monitoring, **wait at least 30 minutes** before the first data is recorded. The bot checks for changes periodically.
+
+### Pagination
+History commands (`/pfphistory`, `/usernamehistory`, `/serverpfphistory`) display 10 entries per page with Back/Next navigation buttons.
+
+### Permissions
+Most commands can be used by anyone. Server monitoring commands (`/monitorserver`, `/removemonitorserver`) require **Manage Server** permission.
+
+## Quick Start
+
+1. Add a user to monitoring:
+   ```
+   /monitor memberid:@username
+   ```
+
+2. Wait at least 30 minutes for data collection
+
+3. View their profile picture history:
+   ```
+   /pfphistory memberid:@username
+   ```
+
+4. Check statistics:
+   ```
+   /stats member:@username
+   ```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="User Commands" icon="user" href="/commands/user-commands">
+    Detailed documentation for user tracking commands
+  </Card>
+  <Card title="Server Commands" icon="server" href="/commands/server-commands">
+    Detailed documentation for server tracking commands
+  </Card>
+</CardGroup>

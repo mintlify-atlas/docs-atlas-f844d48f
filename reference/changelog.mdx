@@ -1,0 +1,102 @@
+---
+title: "Changelog"
+description: "Version history and release notes for PFP Checker"
+---
+
+All notable changes to PFP Checker are documented here. The bot follows semantic versioning.
+
+## [0.5.1] - Current
+
+### Fixed
+
+- Code formatting issues in ping command
+
+---
+
+## [0.5.0] - 2025-11-20
+
+This release introduces **server icon tracking**, a major new feature that allows you to monitor server icon changes alongside user profile pictures.
+
+### Added
+
+- **Server icon tracking functionality** with monitoring commands
+- Improved `/ping` command with latency display (API latency in milliseconds)
+- Comprehensive database tests for server tracking
+- Server history and statistics commands:
+  - `/serverpfphistory` - View server icon history
+  - `/serverstats` - View server icon change statistics
+- Monitor server commands:
+  - `/monitorserver` - Start tracking server icon changes
+  - `/removemonitorserver` - Stop tracking server icon changes
+
+### Fixed
+
+- Permission checks for `monitorserver` and `removemonitorserver` commands
+- Error handling consistency and diagnostics across the codebase
+- Security vulnerabilities in dependencies
+- Removed unused duplicate ImgBB structs
+
+### Changed
+
+- Replaced `unwrap()` with proper error handling in critical paths
+- Extracted duplicate monitoring logic into generic helper functions
+- Comprehensive docstrings added to public functions
+- Updated README with server tracking commands
+
+### Dependencies
+
+- Updated tokio from 1.44.2 to 1.47.1
+- Updated chrono from 0.4.40 to 0.4.42
+- Updated reqwest from 0.12.15 to 0.12.24
+- Updated sqlx from 0.8.3 to 0.8.6
+- Updated serde from 1.0.219 to 1.0.228
+- Updated serde_json from 1.0.140 to 1.0.145
+- Updated openssl from 0.10.66 to 0.10.72
+
+---
+
+## [0.4.0] - 2024
+
+### Added
+
+- **Username history tracking** and related command
+- **Docker Compose support** for production environments
+- **GitHub Actions workflows** for automated builds and releases
+
+---
+
+## [0.3.0]
+
+### Added
+
+- **Stats Command** with comprehensive tracking metrics:
+  - Amount of changes since monitoring started
+  - Start date of monitoring
+  - Average changes per week, month, and year
+
+---
+
+## [0.2.0]
+
+### Added
+
+- **Database integration** with local SQLite Database
+- **Scheduled monitoring** of users
+- **Remove Monitor Command**
+- **History Command** to view previous profile pictures
+
+---
+
+## [0.1.0]
+
+### Added
+
+- Initial release
+- Basic Discord bot functionality
+- Profile picture tracking concept
+
+---
+
+<Note>
+  View the complete source code and releases on [GitHub](https://github.com/j4ytr1n1ty/pfp-checker).
+</Note>

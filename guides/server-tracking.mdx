@@ -1,0 +1,239 @@
+---
+title: Server Tracking
+description: Learn how to monitor Discord servers and track server icon changes
+---
+
+PFP Checker can monitor Discord servers to automatically track changes to server icons. This is useful for documenting server rebrands, seasonal icon changes, or maintaining a historical record.
+
+## Starting Server Monitoring
+
+<Steps>
+  <Step title="Ensure you have permissions">
+    You need the **Manage Server** permission to add a server to monitoring.
+    
+    <Info>
+      Only server administrators or users with the "Manage Server" permission can use server monitoring commands.
+    </Info>
+  </Step>
+  
+  <Step title="Use the monitorserver command">
+    In the server you want to monitor, use:
+    
+    ```
+    /monitorserver
+    ```
+    
+    This command doesn't require any parameters - it automatically monitors the current server.
+  </Step>
+  
+  <Step title="Wait for confirmation">
+    You'll receive a confirmation message:
+    
+    ```
+    Successfully added Server Name to the server monitoring list.
+    ```
+    
+    The bot will now check for server icon changes every 30 minutes.
+  </Step>
+</Steps>
+
+### Already Tracked Servers
+
+If the server is already being monitored, you'll see:
+
+```
+Server Name is already being tracked since Friday, January 15, 2024 at 3:45 PM
+```
+
+This shows when server monitoring was first enabled.
+
+### Permission Denied
+
+If you don't have the required permissions:
+
+```
+You need 'Manage Server' permission to use this command.
+```
+
+<Note>
+  Ask a server administrator to run `/monitorserver` if you don't have the necessary permissions.
+</Note>
+
+## Viewing Server Icon History
+
+To view the complete history of server icon changes:
+
+```
+/serverpfphistory
+```
+
+This command works only in the server you want to view history for.
+
+### History Display Format
+
+The bot displays server icon history in an embedded message:
+
+- **Title**: "Server Name Server Icon History"
+- **Entries**: Up to 10 server icons per page
+- **Each entry shows**:
+  - Full timestamp when the icon was recorded
+  - A link to view the icon image
+  - A checksum for verification
+
+**Example entry:**
+
+```
+Friday, January 15, 2024 at 3:45 PM
+Link: https://cdn.discordapp.com/icons/...
+Checksum: a1b2c3d4e5f6...
+```
+
+<Info>
+  Server icon timestamps use absolute time (full date and time) rather than relative time ("3 days ago").
+</Info>
+
+### Navigating Server History
+
+For servers with more than 10 icon changes:
+
+- **Back button**: View the previous page of icons (disabled on first page)
+- **Next button**: View the next page of icons (disabled on last page)
+- **Page indicator**: Shows current position (e.g., "Page 2 of 5")
+
+Click the buttons to browse through the complete icon history.
+
+### Empty History
+
+If the server has no recorded icon history:
+
+```
+Server Name has no recorded server icon history.
+```
+
+This means either:
+- The server was just added to monitoring (wait 30 minutes)
+- The server icon hasn't changed since monitoring began
+
+## Server Statistics
+
+View analytics about server icon changes:
+
+```
+/serverstats
+```
+
+This command provides insights into how frequently the server changes its icon.
+
+### Statistics Display
+
+The statistics embed shows:
+
+**Header:**
+- Author: Server name
+- Title: "Average times between server icon changes:"
+- Footer: When monitoring started
+
+**Fields:**
+- **Hours**: Average hours between icon changes
+- **Days**: Average days between icon changes
+- **Changes since beginning of Monitoring**: Total number of icon changes detected
+
+**Example output:**
+
+```
+Server Name
+Average times between server icon changes:
+
+Hours: 168
+Days: 7
+
+Changes since beginning of Monitoring: 12
+
+Monitored since Fri, 15 Jan 2024 15:45:00 +0000
+```
+
+<Tip>
+  Use statistics to understand server branding patterns. A low average might indicate frequent seasonal changes, while a high average suggests stable branding.
+</Tip>
+
+### Insufficient Data
+
+If there aren't enough icon changes to calculate meaningful statistics:
+
+```
+Not enough data to calculate average server icon changes.
+```
+
+At least 2 different icons must be recorded to calculate averages.
+
+## Removing Server Monitors
+
+To stop tracking a server and remove its icon history:
+
+```
+/removemonitorserver
+```
+
+<Note>
+  Like `/monitorserver`, this command requires **Manage Server** permission and automatically targets the current server.
+</Note>
+
+### Confirmation Messages
+
+**Success:**
+```
+Successfully deleted server.
+```
+
+**Server not found:**
+```
+Unable to find server. Server may not be tracked.
+```
+
+**Important:** Removing server monitoring deletes all stored icon history. This action cannot be undone.
+
+## Use Cases
+
+<Accordion title="Documenting Seasonal Events">
+  Track how your server's icon changes during holidays, special events, or seasonal celebrations. Review past icons to see your server's history.
+</Accordion>
+
+<Accordion title="Branding Consistency">
+  Monitor icon changes to ensure branding guidelines are followed or to maintain a record of official icon updates.
+</Accordion>
+
+<Accordion title="Community Archives">
+  Build a complete archive of your server's visual identity over time, useful for anniversary celebrations or nostalgia.
+</Accordion>
+
+## Troubleshooting
+
+### Command Only Works in Servers
+
+If you use server commands in DMs:
+
+```
+This command can only be used in a server.
+```
+
+**Solution**: Run the command inside the Discord server you want to monitor.
+
+### Server Not Being Tracked
+
+For `/serverstats` or `/serverpfphistory`:
+
+```
+Server Name is not currently being tracked. You can add it using /monitorserver
+```
+
+**Solution**: First enable monitoring with `/monitorserver`, then wait at least 30 minutes before viewing history or statistics.
+
+### No Icons Recorded
+
+If you see:
+
+```
+No server icons have been recorded. Please wait at least 30 minutes and check again.
+```
+
+**Solution**: The server is monitored but the bot hasn't completed its first check cycle yet. Wait 30 minutes for initial data collection.

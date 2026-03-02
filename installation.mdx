@@ -1,0 +1,561 @@
+---
+title: Installation
+description: Complete setup guide for deploying PFP Checker with Docker or manual installation
+---
+
+# Installation & Setup
+
+This guide covers everything you need to install and configure PFP Checker, from development environments to production deployments.
+
+## System Requirements
+
+### Docker Installation (Recommended)
+
+- **Docker**: Version 20.10 or higher
+- **Docker Compose**: Version 2.0 or higher
+- **Storage**: Minimum 500MB for images and database
+- **Memory**: 256MB RAM minimum (512MB recommended)
+
+### Manual Installation
+
+- **Rust**: Version 1.86 or newer
+- **SQLite**: Version 3.35 or higher
+- **Operating System**: Linux, macOS, or Windows
+- **Storage**: Minimum 500MB for images and database
+- **Memory**: 256MB RAM minimum (512MB recommended)
+
+## Required API Keys
+
+Before installation, obtain these credentials:
+
+<Steps>
+  <Step title="Discord Bot Token">
+    1. Go to the [Discord Developer Portal](https://discord.com/developers/applications)
+    2. Create a new application or select an existing one
+    3. Navigate to the **Bot** section
+    4. Click **Reset Token** and copy the token
+    
+    <Warning>
+      Keep your Discord token secret! Never commit it to version control or share it publicly.
+    </Warning>
+  </Step>
+  
+  <Step title="ImgBB API Key">
+    1. Visit [ImgBB API](https://api.imgbb.com/)
+    2. Sign up or log in to your account
+    3. Copy your API key from the dashboard
+    
+    <Info>
+      ImgBB offers a free tier with 150 uploads per hour, which is sufficient for most use cases.
+    </Info>
+  </Step>
+</Steps>
+
+## Installation Methods
+
+<Tabs>
+  <Tab title="Docker (Recommended)">
+    Docker provides the easiest and most reliable installation method.
+    
+    ### Step 1: Install Docker
+    
+    If you don't have Docker installed:
+    
+    <CodeGroup>
+    
+    ```bash Ubuntu/Debian
+    # Update package list
+    sudo apt-get update
+    
+    # Install Docker
+    sudo apt-get install -y docker.io docker-compose
+    
+    # Start Docker service
+    sudo systemctl start docker
+    sudo systemctl enable docker
+    
+    # Add your user to docker group (optional, avoids using sudo)
+    sudo usermod -aG docker $USER
+    ```
+    
+    ```bash macOS
+    # Install Docker Desktop from:
+    # https://www.docker.com/products/docker-desktop
+    
+    # Or using Homebrew:
+    brew install --cask docker
+    ```
+    
+    ```bash Windows
+    # Install Docker Desktop from:
+    # https://www.docker.com/products/docker-desktop
+    
+    # Ensure WSL 2 is enabled for best performance
+    ```
+    
+    </CodeGroup>
+    
+    ### Step 2: Clone the Repository
+    
+    ```bash
+    git clone https://github.com/j4ytr1n1ty/pfp-checker.git
+    cd pfp-checker
+    ```
+    
+    ### Step 3: Configure Environment Variables
+    
+    Create your `.env` file from the example:
+    
+    ```bash
+    cp .env.example .env
+    ```
+    
+    Edit the `.env` file with your credentials:
+    
+    ```bash .env
+    DISCORD_TOKEN=your_discord_bot_token_here
+    IMGBB_KEY=your_imgbb_api_key_here
+    DATABASE_URL=sqlite:database.sqlite
+    ```
+    
+    <Note>
+      The `DATABASE_URL` should remain as `sqlite:database.sqlite` unless you have a specific reason to change it.
+    </Note>
+    
+    ### Step 4: Start the Bot
+    
+    ```bash
+    # Start in detached mode (runs in background)
+    docker-compose up -d
+    
+    # View logs to verify it's working
+    docker-compose logs -f
+    ```
+    
+    You should see output indicating the bot has connected:
+    
+    ```
+    pfp-checker | PFP Checker is connected!
+    pfp-checker | Updated Global Application Commands
+    ```
+    
+    ### Step 5: Verify Installation
+    
+    In Discord, invite your bot to a server and run:
+    
+    ```
+    /ping
+    ```
+    
+    If you receive a response showing latency, your installation is successful!
+    
+    ### Managing the Docker Container
+    
+    ```bash
+    # Stop the bot
+    docker-compose down
+    
+    # Restart the bot
+    docker-compose restart
+    
+    # View logs
+    docker-compose logs -f
+    
+    # Update to latest version
+    git pull
+    docker-compose down
+    docker-compose up -d --build
+    ```
+  </Tab>
+  
+  <Tab title="Manual Installation">
+    For users who prefer to run PFP Checker without Docker.
+    
+    ### Step 1: Install Rust
+    
+    <CodeGroup>
+    
+    ```bash Linux/macOS
+    # Install Rust using rustup
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    
+    # Restart your terminal or run:
+    source $HOME/.cargo/env
+    
+    # Verify installation
+    rustc --version  # Should show 1.86 or higher
+    ```
+    
+    ```powershell Windows
+    # Download and run rustup-init.exe from:
+    # https://rustup.rs/
+    
+    # Or using Chocolatey:
+    choco install rust
+    
+    # Verify installation
+    rustc --version
+    ```
+    
+    </CodeGroup>
+    
+    ### Step 2: Install SQLite
+    
+    <CodeGroup>
+    
+    ```bash Ubuntu/Debian
+    sudo apt-get update
+    sudo apt-get install -y sqlite3 libsqlite3-dev
+    ```
+    
+    ```bash macOS
+    # SQLite comes pre-installed on macOS
+    # Or install latest version:
+    brew install sqlite
+    ```
+    
+    ```powershell Windows
+    # Download from: https://www.sqlite.org/download.html
+    # Or using Chocolatey:
+    choco install sqlite
+    ```
+    
+    </CodeGroup>
+    
+    ### Step 3: Clone and Build
+    
+    ```bash
+    # Clone repository
+    git clone https://github.com/j4ytr1n1ty/pfp-checker.git
+    cd pfp-checker
+    
+    # Install SQLx CLI for migrations
+    cargo install sqlx-cli --no-default-features --features sqlite
+    
+    # Build the project (this may take a few minutes)
+    cargo build --release
+    ```
+    
+    ### Step 4: Configure Environment
+    
+    ```bash
+    # Create environment file
+    cp .env.example .env
+    
+    # Edit with your credentials
+    nano .env  # or use your preferred editor
+    ```
+    
+    Your `.env` should contain:
+    
+    ```bash .env
+    DISCORD_TOKEN=your_discord_bot_token_here
+    IMGBB_KEY=your_imgbb_api_key_here
+    DATABASE_URL=sqlite:database.sqlite
+    ```
+    
+    ### Step 5: Run the Bot
+    
+    ```bash
+    # Run directly
+    ./target/release/pfp-checker
+    
+    # Or run in development mode
+    cargo run
+    ```
+    
+    <Info>
+      The database and migrations are handled automatically on first run. You don't need to run `sqlx database setup` manually.
+    </Info>
+    
+    ### Running as a Service (Linux)
+    
+    For production deployments, create a systemd service:
+    
+    ```bash
+    # Create service file
+    sudo nano /etc/systemd/system/pfp-checker.service
+    ```
+    
+    Add the following content:
+    
+    ```ini /etc/systemd/system/pfp-checker.service
+    [Unit]
+    Description=PFP Checker Discord Bot
+    After=network.target
+    
+    [Service]
+    Type=simple
+    User=your-username
+    WorkingDirectory=/path/to/pfp-checker
+    ExecStart=/path/to/pfp-checker/target/release/pfp-checker
+    Restart=always
+    RestartSec=10
+    
+    [Install]
+    WantedBy=multi-user.target
+    ```
+    
+    Enable and start the service:
+    
+    ```bash
+    # Reload systemd
+    sudo systemctl daemon-reload
+    
+    # Enable on boot
+    sudo systemctl enable pfp-checker
+    
+    # Start the service
+    sudo systemctl start pfp-checker
+    
+    # Check status
+    sudo systemctl status pfp-checker
+    
+    # View logs
+    sudo journalctl -u pfp-checker -f
+    ```
+  </Tab>
+</Tabs>
+
+## Environment Variables
+
+PFP Checker uses three environment variables for configuration:
+
+| Variable | Required | Description | Example |
+|----------|----------|-------------|----------|
+| `DISCORD_TOKEN` | Yes | Your Discord bot token from the Developer Portal | `MTIzNDU2Nzg5MDEyMzQ1Njc4OTAuGxY...` |
+| `IMGBB_KEY` | Yes | Your ImgBB API key for image hosting | `a1b2c3d4e5f6g7h8i9j0` |
+| `DATABASE_URL` | Yes | SQLite database file path | `sqlite:database.sqlite` |
+
+<Warning>
+  All three environment variables are required. The bot will fail to start if any are missing.
+</Warning>
+
+## Database Setup
+
+PFP Checker uses SQLite with automatic schema migrations managed by SQLx.
+
+### Automatic Migrations
+
+On startup, the bot automatically:
+
+1. Creates the database file if it doesn't exist (specified in `DATABASE_URL`)
+2. Runs all pending migrations from the `migrations/` directory
+3. Creates the necessary tables:
+   - `User` - Stores monitored users and tracking start dates
+   - `ProfilePicture` - Archives profile pictures with checksums and ImgBB links
+   - `UsernameChange` - Records username changes with timestamps
+   - `Server` - Stores monitored servers
+   - `ServerPicture` - Archives server icon changes
+
+### Database Location
+
+By default, the database is stored as `database.sqlite` in the project root. To change this:
+
+```bash .env
+# Store in a different location
+DATABASE_URL=sqlite:/var/lib/pfp-checker/database.sqlite
+
+# Or use a relative path
+DATABASE_URL=sqlite:data/pfp-checker.db
+```
+
+<Note>
+  Ensure the directory exists and the bot has write permissions to the database file location.
+</Note>
+
+### Database Backups
+
+Regularly backup your database to prevent data loss:
+
+```bash
+# Simple copy backup
+cp database.sqlite database.backup.sqlite
+
+# With timestamp
+cp database.sqlite "database.backup.$(date +%Y%m%d-%H%M%S).sqlite"
+
+# Automated daily backup (cron)
+0 2 * * * cp /path/to/database.sqlite /backups/pfp-checker-$(date +\%Y\%m\%d).sqlite
+```
+
+## Discord Bot Configuration
+
+### Required Bot Permissions
+
+When inviting the bot to your server, it only needs:
+
+- **View Channels**: To receive commands
+- **Use Application Commands**: To register and respond to slash commands
+
+The bot does NOT require:
+- Message Content Intent
+- Server Members Intent
+- Presence Intent
+
+### Generating Invite URL
+
+1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
+2. Select your application
+3. Navigate to **OAuth2** → **URL Generator**
+4. Select scopes: `bot` and `applications.commands`
+5. Select bot permissions: `View Channels`
+6. Copy the generated URL
+
+<Info>
+  The bot automatically registers all slash commands globally when it starts. There's no need to manually register commands.
+</Info>
+
+## Verification Steps
+
+After installation, verify everything works correctly:
+
+<Steps>
+  <Step title="Check Bot Status">
+    Verify the bot appears online in your Discord server's member list.
+  </Step>
+  
+  <Step title="Test Ping Command">
+    Run `/ping` to ensure the bot responds with latency information.
+  </Step>
+  
+  <Step title="Test Monitoring">
+    Run `/monitor @user` on yourself or another user.
+    
+    You should receive a confirmation message.
+  </Step>
+  
+  <Step title="Verify Database Creation">
+    Check that `database.sqlite` exists in your project directory (or the path specified in `DATABASE_URL`).
+  </Step>
+  
+  <Step title="Check Logs">
+    Review logs for any errors:
+    
+    <CodeGroup>
+    ```bash Docker
+    docker-compose logs -f
+    ```
+    
+    ```bash Manual
+    # Check console output or systemd logs
+    sudo journalctl -u pfp-checker -f
+    ```
+    </CodeGroup>
+  </Step>
+  
+  <Step title="Wait for First Update">
+    After 30 minutes, run `/pfphistory @user` on a monitored user.
+    
+    You should see at least one profile picture entry.
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+### Bot doesn't start
+
+**Check environment variables:**
+```bash
+# Verify .env file exists and has correct values
+cat .env
+```
+
+**Common issues:**
+- Missing `DISCORD_TOKEN` or `IMGBB_KEY`
+- Invalid Discord token (reset it in Developer Portal)
+- Database file location not writable
+
+### Commands not appearing
+
+**Wait 1-5 minutes** after starting the bot for Discord to register global commands.
+
+**If commands still don't appear:**
+1. Remove and re-invite the bot with the correct OAuth2 URL
+2. Ensure you selected both `bot` and `applications.commands` scopes
+3. Restart the bot
+
+### Database migration errors
+
+```bash
+# Check database file permissions
+ls -la database.sqlite
+
+# Ensure the directory exists
+mkdir -p $(dirname database.sqlite)
+```
+
+### Image upload failures
+
+**Verify ImgBB API key:**
+- Check that `IMGBB_KEY` in `.env` is correct
+- Verify you haven't exceeded ImgBB rate limits (150 uploads/hour)
+- Test your API key: `curl "https://api.imgbb.com/1/upload?key=YOUR_KEY"`
+
+### High memory usage
+
+PFP Checker is designed to be lightweight, but if you experience high memory usage:
+
+1. Check how many users/servers you're monitoring
+2. Review log files for errors or excessive logging
+3. Restart the bot to clear any memory leaks
+
+## Production Deployment
+
+For production environments, consider:
+
+### Docker Compose with Auto-Updates
+
+The project includes a production Docker Compose configuration with Watchtower for automatic updates:
+
+```bash
+docker-compose -f docker-compose.production.yml up -d
+```
+
+### Security Best Practices
+
+- Store `.env` outside the project directory with restricted permissions:
+  ```bash
+  chmod 600 /etc/pfp-checker/.env
+  ```
+- Use environment-specific `.env` files (development, production)
+- Regularly update dependencies: `cargo update`
+- Monitor logs for suspicious activity
+- Implement database backup automation
+
+### Monitoring
+
+Set up monitoring to ensure your bot stays healthy:
+
+```bash
+# Health check script
+#!/bin/bash
+if ! docker-compose ps | grep -q "Up"; then
+    docker-compose up -d
+    echo "Bot restarted at $(date)" >> /var/log/pfp-checker-restarts.log
+fi
+```
+
+Run via cron every 5 minutes:
+```bash
+*/5 * * * * /path/to/health-check.sh
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="User Tracking Guide"
+    icon="users"
+    href="/guides/user-tracking"
+  >
+    Learn how to use user monitoring commands
+  </Card>
+  <Card
+    title="Server Tracking Guide"
+    icon="server"
+    href="/guides/server-tracking"
+  >
+    Track server icon changes
+  </Card>
+</CardGroup>

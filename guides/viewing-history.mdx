@@ -1,0 +1,251 @@
+---
+title: Viewing History
+description: Understand how to navigate and interpret history displays in PFP Checker
+---
+
+PFP Checker presents tracking history through Discord embeds with pagination support. This guide explains how to read and navigate these history displays.
+
+## History Display Format
+
+All history commands (`/pfphistory`, `/usernamehistory`, `/serverpfphistory`) use a consistent embedded message format:
+
+### Embed Structure
+
+**Title**: Identifies what you're viewing
+- Profile Picture History: "Profile Picture History of username#1234"
+- Username History: "Username History of username#1234"
+- Server Icon History: "Server Name Server Icon History"
+
+**Fields**: Individual history entries (up to 10 per page)
+
+**Footer**: Page navigation indicator
+- Shows current page number and total pages
+- Example: "Page 2 of 5"
+
+**Buttons**: Navigation controls (Back and Next)
+
+<Info>
+  Each history type displays entries in reverse chronological order, with the most recent changes appearing first.
+</Info>
+
+## Understanding Timestamps
+
+PFP Checker uses two different timestamp formats depending on the history type:
+
+### Relative Time Format
+
+Used for **user profile pictures** and **usernames**:
+
+```
+Profile Picture first recorded 3 days ago
+Username first recorded 2 weeks ago
+```
+
+Relative timestamps automatically update and show:
+- Seconds/minutes ago (for very recent changes)
+- Hours ago (for changes within 24 hours)
+- Days ago (for changes within weeks)
+- Weeks ago (for older changes)
+- Months ago (for very old changes)
+
+<Tip>
+  Relative timestamps are dynamic. If you view the same history tomorrow, "3 days ago" will display as "4 days ago".
+</Tip>
+
+### Absolute Time Format
+
+Used for **server icons**:
+
+```
+Friday, January 15, 2024 at 3:45 PM
+```
+
+Absolute timestamps show:
+- Day of the week
+- Full date (Month, Day, Year)
+- Exact time (12-hour format)
+
+This format never changes and provides a permanent historical record.
+
+### Monitoring Start Dates
+
+When you first add a user or server to monitoring, the confirmation shows an absolute timestamp:
+
+```
+username is already being tracked since Friday, January 15, 2024 at 3:45 PM
+```
+
+This tells you the earliest possible date for recorded changes.
+
+## Navigating Paginated Results
+
+History displays show 10 entries per page. For longer histories, use the pagination controls:
+
+<Steps>
+  <Step title="Check the page indicator">
+    The footer shows your current position:
+    
+    ```
+    Page 1 of 5
+    ```
+    
+    This means you're viewing the first page of 5 total pages (50 entries).
+  </Step>
+  
+  <Step title="Use navigation buttons">
+    Two buttons appear below the history:
+    
+    - **Back**: Go to the previous page
+    - **Next**: Go to the next page
+    
+    <Note>
+      Buttons are automatically disabled when you can't navigate in that direction. The Back button is disabled on page 1, and the Next button is disabled on the last page.
+    </Note>
+  </Step>
+  
+  <Step title="Click to navigate">
+    Simply click the button to move between pages. The embed updates instantly with the new page's entries.
+  </Step>
+</Steps>
+
+### Button States
+
+**Active button** (blue):
+- Clickable and functional
+- Indicates more pages are available in that direction
+
+**Disabled button** (gray):
+- Cannot be clicked
+- Indicates you're at the first or last page
+
+## Profile Picture and Icon Links
+
+Each profile picture and server icon entry includes a direct link to the image:
+
+```
+Link: [Look at the previous picture](https://cdn.discordapp.com/avatars/...)
+```
+
+For server icons:
+
+```
+Link: https://cdn.discordapp.com/icons/...
+```
+
+### Viewing Images
+
+<Steps>
+  <Step title="Click the link">
+    Click on the hyperlinked text or URL to open the image.
+  </Step>
+  
+  <Step title="Image opens in browser">
+    The image opens in your default web browser or Discord's image viewer.
+  </Step>
+  
+  <Step title="Save or compare">
+    You can save images for archival purposes or compare multiple versions side-by-side.
+  </Step>
+</Steps>
+
+<Info>
+  Image links are hosted on Discord's CDN (Content Delivery Network) and remain accessible as long as they're stored in the bot's database.
+</Info>
+
+## Understanding Checksums
+
+Every profile picture and server icon entry includes a checksum:
+
+```
+Checksum: a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456
+```
+
+### What is a Checksum?
+
+A checksum is a unique identifier calculated from the image file. Think of it as a digital fingerprint:
+
+- **Unique**: Each different image produces a different checksum
+- **Consistent**: The same image always produces the same checksum
+- **Verification**: Proves an image hasn't been modified
+
+### Why Checksums Matter
+
+<Accordion title="Detecting Duplicate Changes">
+  If a user changes their profile picture and then changes it back, the checksum will match a previous entry, showing they returned to an old picture.
+</Accordion>
+
+<Accordion title="Verifying Image Integrity">
+  You can verify that a downloaded image matches the original by comparing checksums. If they match, the image is identical.
+</Accordion>
+
+<Accordion title="Technical Reference">
+  Checksums are useful for developers or administrators who need to programmatically track or verify images.
+</Accordion>
+
+<Note>
+  You don't need to manually use checksums for normal tracking. The bot automatically uses them to detect when images actually change versus when Discord's URL changes but the image remains the same.
+</Note>
+
+## Username History Format
+
+Username history has a simpler format than profile pictures:
+
+```
+Username first recorded 2 weeks ago
+OldUsername123
+```
+
+Each entry shows:
+1. **When recorded**: Relative timestamp of when the username was first seen
+2. **The username**: The actual username value at that time
+
+No links or checksums are needed for text-based usernames.
+
+## Reading Empty History Messages
+
+Different messages indicate why history might be empty:
+
+### Just Added to Monitoring
+
+```
+No History Found
+The requested User has not been recorded yet. However they are queued for future monitoring. Please wait at least 30 minutes.
+```
+
+**Meaning**: The user/server was just added. Initial data hasn't been collected yet.
+
+### Not Being Tracked
+
+```
+User not found
+The User you requested the history of could not be found in our Database.
+To add the user to tracking use /monitor @User
+```
+
+**Meaning**: You need to start monitoring this user/server first.
+
+### No Changes Detected
+
+```
+No Profile picture entries found. Please check back in about 30 minutes.
+```
+
+**Meaning**: The user is monitored but no changes have been detected yet. Their current profile picture will be recorded on the next check.
+
+## Tips for Effective History Viewing
+
+<Tip>
+  **Bookmark Important Changes**: Take screenshots or save links to significant profile picture changes for easy reference.
+</Tip>
+
+<Tip>
+  **Compare Side-by-Side**: Open multiple image links in browser tabs to compare profile pictures or icons over time.
+</Tip>
+
+<Tip>
+  **Note the Page Count**: The total number of pages gives you a quick sense of how frequently someone changes their profile picture or username.
+</Tip>
+
+<Tip>
+  **Check Recent Pages First**: Since history is reverse chronological, page 1 always shows the most recent changes.
+</Tip>

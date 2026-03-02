@@ -1,0 +1,335 @@
+---
+title: Statistics
+description: Learn how to interpret user and server statistics in PFP Checker
+---
+
+PFP Checker provides statistical analysis of profile picture and server icon changes, helping you understand change patterns and frequency.
+
+## User Statistics
+
+View statistics for any monitored user:
+
+```
+/stats @username
+```
+
+This command analyzes profile picture change patterns and calculates averages.
+
+### Statistics Display
+
+The statistics embed contains:
+
+**Header Information:**
+- **Author**: Username and discriminator (e.g., "username#1234")
+- **Title**: "Average times between profile picture changes:"
+
+**Statistical Fields:**
+- **Hours**: Average hours between profile picture changes
+- **Days**: Average days between profile picture changes
+- **Changes since beginning of Monitoring**: Total number of profile picture changes detected
+
+**Footer:**
+- Shows when monitoring started (in RFC 2822 format)
+- Example: "Monitored since Fri, 15 Jan 2024 15:45:00 +0000"
+
+### Example Output
+
+```
+username#1234
+Average times between profile picture changes:
+
+Hours: 336
+Days: 14
+
+Changes since beginning of Monitoring: 8
+
+Monitored since Fri, 15 Jan 2024 15:45:00 +0000
+```
+
+**Interpretation:**
+- This user changes their profile picture approximately every 14 days (336 hours)
+- They've changed it 8 times since monitoring began
+- Monitoring started on January 15, 2024
+
+<Info>
+  Statistics require at least 2 profile picture changes to calculate averages. With only 1 recorded picture, there are no intervals to measure.
+</Info>
+
+## Server Statistics
+
+View statistics for the current server:
+
+```
+/serverstats
+```
+
+This analyzes server icon change patterns.
+
+### Statistics Display
+
+Server statistics use the same format as user statistics:
+
+**Header Information:**
+- **Author**: Server name
+- **Title**: "Average times between server icon changes:"
+
+**Statistical Fields:**
+- **Hours**: Average hours between icon changes
+- **Days**: Average days between icon changes
+- **Changes since beginning of Monitoring**: Total icon changes detected
+
+**Footer:**
+- When server monitoring started
+
+### Example Output
+
+```
+My Gaming Server
+Average times between server icon changes:
+
+Hours: 720
+Days: 30
+
+Changes since beginning of Monitoring: 12
+
+Monitored since Fri, 15 Jan 2024 15:45:00 +0000
+```
+
+**Interpretation:**
+- The server changes its icon approximately every 30 days
+- Icons have changed 12 times since monitoring began
+- This suggests monthly icon updates, possibly for seasonal themes
+
+## Understanding the Averages
+
+### How Averages Are Calculated
+
+The bot calculates averages by:
+
+<Steps>
+  <Step title="Collecting all change timestamps">
+    Every time a profile picture or server icon changes, the exact timestamp is recorded.
+  </Step>
+  
+  <Step title="Calculating intervals">
+    The time difference between consecutive changes is measured:
+    
+    - Change 1 at Day 0
+    - Change 2 at Day 7 → Interval: 7 days
+    - Change 3 at Day 14 → Interval: 7 days
+    - Change 4 at Day 28 → Interval: 14 days
+  </Step>
+  
+  <Step title="Computing the average">
+    All intervals are added together and divided by the number of intervals:
+    
+    ```
+    (7 + 7 + 14) ÷ 3 = 9.33 days average
+    ```
+  </Step>
+</Steps>
+
+<Note>
+  Averages are rounded to whole numbers. Fractional hours and days are rounded to the nearest integer.
+</Note>
+
+### Two Time Units
+
+Statistics show both **hours** and **days** for convenience:
+
+- **Hours**: Useful for high-frequency changers
+  - Example: "48 hours" is easier to understand than "2 days" for frequent changes
+- **Days**: Useful for low-frequency changers
+  - Example: "30 days" is clearer than "720 hours"
+
+**Conversion:**
+```
+Days = Hours ÷ 24
+```
+
+Both values represent the same average, just in different units.
+
+## Interpreting Change Frequency
+
+### High-Frequency Changers
+
+**Characteristics:**
+- Low average (hours: less than 168, days: less than 7)
+- High change count
+- Frequent profile updates
+
+**Example:**
+```
+Hours: 72
+Days: 3
+Changes: 24
+```
+
+**Interpretation**: This user changes their profile picture approximately every 3 days and is very active with customization.
+
+### Medium-Frequency Changers
+
+**Characteristics:**
+- Moderate average (hours: 168-720, days: 7-30)
+- Moderate change count
+- Regular updates
+
+**Example:**
+```
+Hours: 336
+Days: 14
+Changes: 12
+```
+
+**Interpretation**: This user updates their profile picture biweekly, showing consistent but not excessive customization.
+
+### Low-Frequency Changers
+
+**Characteristics:**
+- High average (hours: greater than 720, days: greater than 30)
+- Low change count
+- Rare updates
+
+**Example:**
+```
+Hours: 2160
+Days: 90
+Changes: 4
+```
+
+**Interpretation**: This user rarely changes their profile picture, averaging once every 3 months.
+
+## Comparing User vs Server Stats
+
+### Key Differences
+
+<Accordion title="Update Patterns">
+  **Users** tend to change profile pictures more frequently and irregularly based on personal preference.
+  
+  **Servers** often change icons on predictable schedules (seasonal events, monthly themes, special occasions).
+</Accordion>
+
+<Accordion title="Average Ranges">
+  **Users**: Averages typically range from 3 days to several months
+  
+  **Servers**: Averages typically range from 1 week to several months, with many servers showing monthly patterns (28-31 days)
+</Accordion>
+
+<Accordion title="Change Count">
+  **Users**: Highly variable - some change constantly, others never
+  
+  **Servers**: Generally lower change counts unless actively managed for events
+</Accordion>
+
+## Insufficient Data Messages
+
+### Not Enough Profile Picture Changes
+
+```
+Not enough data to calculate an average time between profile picture changes.
+```
+
+**Meaning**: The user has been monitored but has 0 or 1 recorded profile pictures. At least 2 different pictures are needed to calculate an interval.
+
+**Solution**: Wait for the user to change their profile picture, then check statistics again.
+
+### No Profile Pictures Recorded
+
+```
+No Profile Pictures have been recorded for this User. Please wait at least 30 minutes and check again.
+```
+
+**Meaning**: The user is monitored but the bot hasn't completed its first data collection cycle.
+
+**Solution**: Wait 30 minutes for initial data to be recorded.
+
+### User Not Monitored
+
+```
+User is not currently being tracked. You can add the user to the monitor list by using /monitor @user
+```
+
+**Meaning**: Statistics cannot be calculated because the user isn't being tracked.
+
+**Solution**: Add the user with `/monitor @username` and wait at least 30 minutes.
+
+## Server Statistics Messages
+
+### Not Enough Icon Changes
+
+```
+Not enough data to calculate average server icon changes.
+```
+
+**Meaning**: The server has 0 or 1 recorded icons.
+
+**Solution**: Wait for the server icon to change before viewing statistics.
+
+### No Icons Recorded
+
+```
+No server icons have been recorded. Please wait at least 30 minutes and check again.
+```
+
+**Meaning**: Server monitoring was just started.
+
+**Solution**: Wait 30 minutes for the first check cycle.
+
+### Server Not Monitored
+
+```
+Server Name is not currently being tracked. You can add it using /monitorserver
+```
+
+**Meaning**: The server isn't being tracked.
+
+**Solution**: Use `/monitorserver` to start tracking (requires Manage Server permission).
+
+## Using Statistics Effectively
+
+<Tip>
+  **Track Trends Over Time**: Check statistics periodically to see if change frequency increases or decreases. A sudden spike might indicate a user is testing new profile pictures.
+</Tip>
+
+<Tip>
+  **Identify Patterns**: Server statistics can reveal seasonal patterns. An average of ~30 days might indicate monthly themed icons.
+</Tip>
+
+<Tip>
+  **Set Expectations**: Use averages to predict when the next change might occur. If someone averages 7 days and it's been 6 days, a change is likely soon.
+</Tip>
+
+<Tip>
+  **Compare Multiple Users**: Check statistics for different users to compare customization habits and identify the most frequent changers.
+</Tip>
+
+## Advanced Interpretation
+
+### Understanding the Monitored Since Date
+
+The footer timestamp is crucial for context:
+
+```
+Monitored since Fri, 15 Jan 2024 15:45:00 +0000
+```
+
+**Why it matters:**
+- Longer monitoring periods provide more accurate averages
+- Recent monitoring (< 1 month) may not capture true patterns
+- Seasonal patterns require at least 1 year of monitoring
+
+<Info>
+  Statistics become more reliable over time. An average calculated from 3 changes over 2 weeks is less reliable than one from 20 changes over 6 months.
+</Info>
+
+### Outliers and Anomalies
+
+Some factors can skew averages:
+
+- **Initial setup period**: Users often change pictures multiple times when first customizing
+- **Special events**: Holidays or events may cause temporary spike in changes
+- **Long gaps**: If someone doesn't change for months, then resumes, the average may not reflect current behavior
+
+<Note>
+  Treat statistics as general trends rather than precise predictions. Human behavior is variable and averages capture overall patterns, not exact schedules.
+</Note>

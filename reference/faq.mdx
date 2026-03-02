@@ -1,0 +1,254 @@
+---
+title: "FAQ"
+description: "Frequently asked questions about PFP Checker"
+---
+
+Find answers to common questions about setting up, using, and troubleshooting PFP Checker.
+
+## Setup and Configuration
+
+<AccordionGroup>
+  <Accordion title="What do I need to run PFP Checker?">
+    You need three things:
+    
+    1. **Discord Bot Token** - Create a bot application in the [Discord Developer Portal](https://discord.com/developers/applications)
+    2. **ImgBB API Key** - Sign up for a free API key at [ImgBB](https://api.imgbb.com/)
+    3. **Server Environment** - Either Docker (recommended) or Rust 1.86+ installed locally
+    
+    The bot uses SQLite for the database, which is created automatically on first run.
+  </Accordion>
+
+  <Accordion title="How do I get an ImgBB API key?">
+    1. Go to [ImgBB API](https://api.imgbb.com/)
+    2. Sign up for a free account or log in
+    3. Navigate to the API section
+    4. Copy your API key
+    5. Add it to your `.env` file as `IMGBB_KEY=your_key_here`
+    
+    The free tier is sufficient for most use cases.
+  </Accordion>
+
+  <Accordion title="What Discord permissions does the bot need?">
+    The bot requires the following permissions:
+    
+    - **Read Messages/View Channels** - To receive commands
+    - **Send Messages** - To send responses
+    - **Embed Links** - To display formatted responses
+    - **Read Message History** - For proper command handling
+    
+    The bot uses slash commands and does not require message content intent.
+  </Accordion>
+
+  <Accordion title="Can I use PFP Checker in multiple servers?">
+    Yes! PFP Checker can be used across multiple servers simultaneously. User tracking is global (if a user is monitored in one server, their changes are tracked everywhere), but server icon tracking is specific to each server.
+    
+    Each server can independently:
+    - Monitor and unmonitor users
+    - Track its own server icon changes
+    - View statistics and history
+  </Accordion>
+</AccordionGroup>
+
+## Using Commands
+
+<AccordionGroup>
+  <Accordion title="Who can use the monitor commands?">
+    **User monitoring** (`/monitor`, `/removemonitor`):
+    - Any server member can monitor any user
+    - No special permissions required
+    
+    **Server monitoring** (`/monitorserver`, `/removemonitorserver`):
+    - Requires **Manage Server** permission
+    - Only server administrators or users with the Manage Server permission can start/stop server icon tracking
+  </Accordion>
+
+  <Accordion title="How often does the bot check for changes?">
+    The bot checks for profile picture and server icon changes automatically at regular intervals (typically every few minutes). The exact frequency is configured in the bot's internal scheduler.
+    
+    Changes are detected and recorded automatically once monitoring is enabled - you don't need to do anything.
+  </Accordion>
+
+  <Accordion title="What does the /stats command show?">
+    The `/stats` command displays:
+    
+    - **Total number of changes** since monitoring started
+    - **Start date** of monitoring
+    - **Average changes per week**
+    - **Average changes per month**
+    - **Average changes per year**
+    
+    This gives you insight into how frequently a user changes their profile picture.
+  </Accordion>
+
+  <Accordion title="How do I view someone's profile picture history?">
+    Use the `/pfphistory @user` command. This will show:
+    
+    - All previous profile pictures for that user
+    - The date each profile picture was set
+    - Links to the archived images
+    
+    Similarly, use `/serverpfphistory` to view a server's icon history.
+  </Accordion>
+</AccordionGroup>
+
+## Data and Privacy
+
+<AccordionGroup>
+  <Accordion title="Where is data stored?">
+    PFP Checker stores data in two places:
+    
+    1. **Local SQLite database** - Stores user IDs, server IDs, timestamps, and metadata
+    2. **ImgBB** - Stores archived profile pictures and server icons
+    
+    The database file (`database.sqlite`) is stored in your bot's directory. Profile pictures are uploaded to ImgBB for permanent archival.
+  </Accordion>
+
+  <Accordion title="What data does the bot collect?">
+    The bot collects:
+    
+    - **Discord User IDs** (not usernames, except for username history tracking)
+    - **Discord Server IDs**
+    - **Profile picture URLs** and archived copies
+    - **Server icon URLs** and archived copies
+    - **Timestamps** of when changes occurred
+    - **Username history** (if a user is monitored)
+    
+    No message content, DMs, or personal information beyond public Discord data is collected.
+  </Accordion>
+
+  <Accordion title="Can users opt out of tracking?">
+    Users can request to be removed from monitoring by asking a server member to run `/removemonitor @user`. The bot does not have a built-in user opt-out mechanism since it only tracks public Discord information.
+    
+    Note that archived images on ImgBB remain stored but are no longer linked to the user in the bot's database.
+  </Accordion>
+
+  <Accordion title="How long is data retained?">
+    Data is retained indefinitely unless manually deleted:
+    
+    - Database records persist until you stop monitoring a user or server
+    - Archived images on ImgBB remain available according to ImgBB's retention policy
+    
+    You can manually delete entries from the database if needed.
+  </Accordion>
+</AccordionGroup>
+
+## ImgBB Integration
+
+<AccordionGroup>
+  <Accordion title="Why does PFP Checker use ImgBB?">
+    PFP Checker uses ImgBB to permanently archive profile pictures and server icons. Discord's CDN URLs are temporary and can change or expire, so uploading to ImgBB ensures:
+    
+    - **Permanent storage** of historical profile pictures
+    - **Reliable access** to archived images
+    - **No broken links** in history commands
+  </Accordion>
+
+  <Accordion title="What happens if ImgBB is down?">
+    If ImgBB is unavailable when a profile picture change is detected:
+    
+    - The bot will log an error
+    - The change detection will continue
+    - The upload may fail, potentially resulting in a missing archive for that specific change
+    
+    The bot continues operating normally for all other functions.
+  </Accordion>
+
+  <Accordion title="Are there rate limits with ImgBB?">
+    Yes, ImgBB has rate limits on their free tier. The exact limits depend on your API key tier. For most personal or small server use, the free tier is sufficient.
+    
+    If you exceed rate limits:
+    - Image uploads will fail temporarily
+    - The bot will log errors
+    - Consider upgrading your ImgBB plan for higher limits
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The bot is not responding to commands">
+    Check the following:
+    
+    1. **Bot is online** - Check your console logs
+    2. **Permissions** - Ensure the bot has proper permissions in the server
+    3. **Slash commands registered** - Restart the bot to re-register commands
+    4. **Discord token valid** - Verify your `DISCORD_TOKEN` in `.env`
+    
+    Run `/ping` to check if the bot is responsive.
+  </Accordion>
+
+  <Accordion title="Profile picture changes aren't being detected">
+    Possible causes:
+    
+    1. **User not monitored** - Run `/monitor @user` first
+    2. **Bot was offline** - Changes are only detected while the bot is running
+    3. **Database issues** - Check console logs for errors
+    4. **ImgBB upload failed** - Verify your `IMGBB_KEY` is valid
+    
+    Check the bot's console output for error messages.
+  </Accordion>
+
+  <Accordion title="Database error when starting the bot">
+    If you see database errors:
+    
+    1. **Run migrations** - `sqlx database setup --database-url sqlite:database.sqlite`
+    2. **Delete and recreate** - Backup `database.sqlite`, delete it, and restart the bot
+    3. **Check permissions** - Ensure the bot has write access to the directory
+    4. **DATABASE_URL correct** - Verify the path in your `.env` file
+  </Accordion>
+
+  <Accordion title="How do I check the bot's latency?">
+    Use the `/ping` command. It will respond with:
+    
+    - **API latency** in milliseconds
+    - Confirmation that the bot is online
+    
+    This helps diagnose connection issues.
+  </Accordion>
+
+  <Accordion title="Images aren't showing in history">
+    If images don't load in `/pfphistory` or `/serverpfphistory`:
+    
+    1. **ImgBB issue** - The image hosting service may be down
+    2. **Invalid URLs** - Check the database for corrupted entries
+    3. **Upload failures** - Review console logs for ImgBB errors
+    
+    Images must be successfully uploaded to ImgBB to appear in history.
+  </Accordion>
+</AccordionGroup>
+
+## Performance and Limits
+
+<AccordionGroup>
+  <Accordion title="How many users can I monitor?">
+    There's no hard limit on the number of monitored users, but performance depends on:
+    
+    - Available system resources
+    - Database size
+    - ImgBB API rate limits
+    
+    For optimal performance on modest hardware, keep monitoring under a few hundred users.
+  </Accordion>
+
+  <Accordion title="Does monitoring affect bot performance?">
+    Monitoring has minimal performance impact:
+    
+    - Checks run on a scheduled interval, not continuously
+    - Database queries are optimized
+    - Only changed profile pictures trigger uploads
+    
+    The bot is designed to be efficient and lightweight.
+  </Accordion>
+
+  <Accordion title="Can I monitor users who aren't in my server?">
+    Yes! Once a user is monitored, the bot tracks their profile picture changes globally, even if they leave the server or aren't in the same servers as the bot.
+    
+    However, the bot must have encountered the user at least once to cache their information.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+<Note>
+  Can't find what you're looking for? Open an issue on [GitHub](https://github.com/j4ytr1n1ty/pfp-checker/issues) or check the [documentation](/index).
+</Note>

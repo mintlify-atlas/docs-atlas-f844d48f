@@ -1,0 +1,366 @@
+---
+title: 'Docker Deployment'
+description: 'Deploy PFP Checker using Docker and Docker Compose (Recommended)'
+icon: 'docker'
+---
+
+Docker is the recommended way to deploy PFP Checker. It provides a consistent environment and simplifies deployment with automatic database migrations.
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- [Docker](https://docs.docker.com/get-docker/) (version 20.10 or newer)
+- [Docker Compose](https://docs.docker.com/compose/install/) (version 2.0 or newer)
+- Discord Bot Token ([Create a bot](https://discord.com/developers/applications))
+- ImgBB API Key ([Get your key](https://api.imgbb.com/))
+
+## Quick Start
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/j4ytr1n1ty/pfp-checker.git
+    cd pfp-checker
+    ```
+  </Step>
+
+  <Step title="Create environment configuration">
+    Copy the example environment file and configure your credentials:
+    
+    ```bash
+    cp .env.example .env
+    ```
+    
+    Edit `.env` and add your tokens:
+    
+    ```bash .env
+    DISCORD_TOKEN=<your-discord-bot-token>
+    IMGBB_KEY=<your-imgbb-api-key>
+    DATABASE_URL=sqlite:database.sqlite
+    ```
+  </Step>
+
+  <Step title="Start the bot">
+    Launch the bot using Docker Compose:
+    
+    ```bash
+    docker-compose up -d
+    ```
+    
+    The bot will:
+    - Build the Docker image from the Dockerfile
+    - Create a persistent volume for the database
+    - Run database migrations automatically
+    - Start the bot in detached mode
+  </Step>
+
+  <Step title="Verify the deployment">
+    Check that the container is running:
+    
+    ```bash
+    docker-compose ps
+    ```
+    
+    View the logs:
+    
+    ```bash
+    docker-compose logs -f
+    ```
+    
+    You should see a message indicating the bot is connected.
+  </Step>
+</Steps>
+
+## Docker Configuration
+
+### Dockerfile Overview
+
+The Dockerfile uses a multi-stage build for optimal image size:
+
+```dockerfile
+# Build stage
+FROM rust:1.86-slim-bullseye AS builder
+
+# Install required dependencies
+RUN apt-get update && \
+  apt-get install -y \
+  pkg-config \
+  libssl-dev \
+  sqlite3 \
+  libsqlite3-dev \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /usr/src/app
+COPY . .
+
+# Build the project with release optimizations
+RUN cargo build --release
+
+# Runtime stage
+FROM debian:bullseye-slim
+
+# Install runtime dependencies
+RUN apt-get update && \
+  apt-get install -y \
+  ca-certificates \
+  sqlite3 \
+  libsqlite3-0 \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy the built binary from builder
+COPY --from=builder /usr/src/app/target/release/pfp-checker /app/pfp-checker
+# Copy migrations folder
+COPY --from=builder /usr/src/app/migrations /app/migrations
+
+# Create volume for persistent database storage
+VOLUME ["/app/data"]
+
+# Set environment variables
+ENV DATABASE_URL=sqlite:/app/data/database.sqlite
+
+# Run the binary
+CMD ["./pfp-checker"]
+```
+
+### Docker Compose Configurations
+
+<CodeGroup>
+
+```yaml docker-compose.yml
+services:
+  discord-bot:
+    build: .
+    container_name: pfp_spy
+    env_file:
+      - .env
+    volumes:
+      - "./data:/app/data"
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=/app/data/database.sqlite
+```
+
+```yaml docker-compose.production.yml
+services:
+  discord-bot:
+    image: ghcr.io/j4ytr1n1ty/pfp-checker:latest
+    env_file:
+      - .env
+    volumes:
+      - "./data:/app/data"
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=/app/data/database.sqlite
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  watchtower:
+    image: containrrr/watchtower
+    user: "1000:1000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 300 --label-enable
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+```
+
+</CodeGroup>
+
+## Volume Persistence
+
+The bot uses a volume mount to persist the SQLite database across container restarts:
+
+```yaml
+volumes:
+  - "./data:/app/data"
+```
+
+<Info>
+  **Database Location**: The database file is stored at `./data/database.sqlite` on your host machine and mounted to `/app/data/database.sqlite` inside the container.
+</Info>
+
+This ensures that:
+- User tracking data persists across container restarts
+- Profile picture history is preserved
+- Database migrations are applied correctly
+
+## Production Deployment
+
+For production environments, use the production Docker Compose configuration:
+
+```bash
+docker-compose -f docker-compose.production.yml up -d
+```
+
+### Production Features
+
+<CardGroup cols={2}>
+  <Card title="Pre-built Images" icon="box">
+    Uses the official image from GitHub Container Registry instead of building locally
+  </Card>
+  
+  <Card title="Auto-updates" icon="rotate">
+    Watchtower automatically checks for and deploys new versions every 5 minutes
+  </Card>
+  
+  <Card title="Auto-restart" icon="arrow-rotate-right">
+    Containers automatically restart on failure or system reboot
+  </Card>
+  
+  <Card title="Security" icon="shield">
+    Watchtower runs with security restrictions (no-new-privileges)
+  </Card>
+</CardGroup>
+
+<Warning>
+  **Watchtower Configuration**: The Watchtower service runs with user `1000:1000`. Adjust this to match your system's user ID if needed using `id -u` and `id -g`.
+</Warning>
+
+## Managing the Container
+
+### View Logs
+
+```bash
+# Follow logs in real-time
+docker-compose logs -f
+
+# View last 100 lines
+docker-compose logs --tail=100
+
+# View logs for specific service
+docker-compose logs discord-bot
+```
+
+### Stop the Bot
+
+```bash
+# Stop without removing containers
+docker-compose stop
+
+# Stop and remove containers
+docker-compose down
+```
+
+### Restart the Bot
+
+```bash
+# Restart all services
+docker-compose restart
+
+# Restart specific service
+docker-compose restart discord-bot
+```
+
+## Updating the Container
+
+<Tabs>
+  <Tab title="With Watchtower (Production)">
+    If you're using the production configuration with Watchtower, updates are automatic:
+    
+    - Watchtower checks for new images every 5 minutes (300 seconds)
+    - When a new version is detected, it automatically pulls and restarts the container
+    - Your data is preserved during updates
+    
+    <Info>
+      Check Watchtower logs to see update activity:
+      ```bash
+      docker-compose -f docker-compose.production.yml logs watchtower
+      ```
+    </Info>
+  </Tab>
+  
+  <Tab title="Manual Update (Development)">
+    For the development configuration, manually update when needed:
+    
+    ```bash
+    # Stop the current container
+    docker-compose down
+    
+    # Pull latest code
+    git pull
+    
+    # Rebuild and start
+    docker-compose up -d --build
+    ```
+  </Tab>
+  
+  <Tab title="Manual Update (Production)">
+    For the production configuration without Watchtower:
+    
+    ```bash
+    # Pull the latest image
+    docker-compose -f docker-compose.production.yml pull
+    
+    # Restart with new image
+    docker-compose -f docker-compose.production.yml up -d
+    ```
+  </Tab>
+</Tabs>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Container exits immediately">
+    Check the logs for configuration errors:
+    
+    ```bash
+    docker-compose logs discord-bot
+    ```
+    
+    Common issues:
+    - Invalid Discord token or ImgBB API key
+    - Missing `.env` file
+    - Database connection errors
+  </Accordion>
+  
+  <Accordion title="Database not persisting">
+    Ensure the volume mount is correct:
+    
+    ```bash
+    # Check if data directory exists
+    ls -la ./data
+    
+    # Verify volume mount
+    docker inspect pfp_spy | grep -A 10 Mounts
+    ```
+  </Accordion>
+  
+  <Accordion title="Permission errors on data directory">
+    Fix permissions on the data directory:
+    
+    ```bash
+    # Create data directory if it doesn't exist
+    mkdir -p ./data
+    
+    # Set proper permissions
+    chmod 755 ./data
+    ```
+  </Accordion>
+  
+  <Accordion title="Watchtower not updating">
+    Check Watchtower logs and ensure it has Docker socket access:
+    
+    ```bash
+    docker-compose -f docker-compose.production.yml logs watchtower
+    
+    # Verify Docker socket mount
+    docker inspect <watchtower-container-id> | grep -A 5 Mounts
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration" icon="gear" href="/deployment/configuration">
+    Learn about all available environment variables and configuration options
+  </Card>
+  
+  <Card title="Manual Installation" icon="terminal" href="/deployment/manual">
+    Prefer to run without Docker? Check out the manual installation guide
+  </Card>
+</CardGroup>
